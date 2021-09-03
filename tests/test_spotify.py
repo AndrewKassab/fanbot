@@ -4,8 +4,8 @@ from spotify import *
 
 class TestSpotify(unittest.TestCase):
 
-    valid_artist_name = 'Moe Shop' #'Porter Robinson'
-    valid_artist_true_id = '7cvljqLNhWNFMb8wP2NImJ' #'3dz0NnIZhtKKeXZxLOxCam'
+    valid_artist_name = 'Porter Robinson'
+    valid_artist_true_id = '3dz0NnIZhtKKeXZxLOxCam'
 
     def test_get_artist_id_invalid(self):
         self.assertRaises(InvalidArtistException, get_artist_id_by_name, "invalid artist name")
