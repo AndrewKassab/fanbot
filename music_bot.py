@@ -11,9 +11,7 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
-
-    channel = message.channel
-    if channel.name != 'music':
+    if message.channel.name != 'music':
         return
 
     if message.content.startswith('$hello'):
