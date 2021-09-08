@@ -1,4 +1,5 @@
 import discord
+import os
 
 client = discord.Client()
 
@@ -11,7 +12,11 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    channel = message.channel
+    if channel.name != 'music':
+        return
+
     if message.content.startswith('$hello'):
         await message.channel.send('Hello!')
 
-client.run('your token here')
+client.run(os.getenv('MUSIC_BOT_TOKEN'))
