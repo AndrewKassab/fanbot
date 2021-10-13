@@ -33,7 +33,7 @@ def get_new_releases_by_artist_id(artist_id):
     artist_albums = []
     offset = 0
     while (len(artist_albums) != 0) or (offset == 0):
-        artist_albums = sp.artist_albums("0Vw76uk7P8yVtTClWyOhac", limit=50, offset=offset)['items']
+        artist_albums = sp.artist_albums(artist_id, limit=50, offset=offset)['items']
         new_releases.extend(filter_releases_by_date(artist_albums, curr_date))
         offset += 50
     return new_releases
