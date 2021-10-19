@@ -43,7 +43,15 @@ async def follow_artist(message):
 
 
 async def unfollow_artist(message):
-    pass
+    artist_name = message.content[10:]
+    if (len(artist_name)) == 0:
+        await message.channel.send('Please specify an artist name after this command')
+        return
+    try:
+        remove_artist_from_db(artist_name)
+        await message.channel.send('%s has been unfollowed!' % artist_name)
+    except NotFollowingArtistException:
+        await message.channel.send('You are not following any artist named %s!' % artist_name)
 
 
 async def show_follows(message):

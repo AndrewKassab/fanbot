@@ -10,6 +10,12 @@ class ArtistAlreadyExistsException(Exception):
         super().__init__("Already following artist")
 
 
+class NotFollowingArtistException(Exception):
+
+    def __init__(self):
+        super().__init__("Not following artist")
+
+
 def add_artist_to_db(artist):
     con = sqlite3.connect(db_path)
     cur = con.cursor()
@@ -20,4 +26,14 @@ def add_artist_to_db(artist):
     con.commit()
     con.close()
 
+
+def remove_artist_from_db(artist_name):
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    cur.execute("SELECT * FROM Artists WHERE name='%s'" % artist_name)
+    if len(cur.fetchall()) <= 0:
+        raise NotFollowingArtistException
+    cur.execute("DELETE FROM Artists WHERE name='%s'" % artist_name)
+    con.commit()
+    con.close()
 
