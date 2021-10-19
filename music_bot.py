@@ -1,5 +1,6 @@
 import discord
 from spotify import *
+import sqlite3
 
 client = discord.Client()
 
@@ -15,24 +16,26 @@ async def on_message(message):
         return
 
     if message.content.startswith('-follow'):
-        artist_name = message.content[8:]
-        if (len(artist_name)) == 0:
-            await message.channel.send('Please specify an artist name after this command')
-            return
-        artist_id = get_artist_id_by_name(str(artist_name))
-        await message.channel.send(artist_id)
+        await follow_artist(message)
     elif message.content.startswith('-unfollow'):
         await unfollow_artist(message)
     elif message.content.startswith('-followlist'):
         await show_follows(message)
     elif message.content.startswith('-help '):
         await show_help()
-    else:
+
+
+def follow_artist(message):
+    artist_name = message.content[8:]
+    if (len(artist_name)) == 0:
+        message.channel.send('Please specify an artist name after this command')
         return
-
-
-async def follow_artist(artist_name, channel):
-    pass
+    try:
+        artist_id = get_artist_id_by_name(str(artist_name))
+    except InvalidArtistException:
+        message.channel.send('Artist not found or invalid')
+        return
+    # TODO: Follow artist
 
 
 async def unfollow_artist(message):
