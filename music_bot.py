@@ -1,6 +1,6 @@
 import discord
 from spotify import *
-import sqlite3
+from db.database import *
 
 client = discord.Client()
 
@@ -25,17 +25,21 @@ async def on_message(message):
         await show_help()
 
 
-def follow_artist(message):
+async def follow_artist(message):
     artist_name = message.content[8:]
     if (len(artist_name)) == 0:
-        message.channel.send('Please specify an artist name after this command')
+        await message.channel.send('Please specify an artist name after this command')
         return
     try:
-        artist_id = get_artist_id_by_name(str(artist_name))
+        artist = get_artist_by_name(str(artist_name))
     except InvalidArtistException:
-        message.channel.send('Artist not found or invalid')
+        await message.channel.send(InvalidArtistException)
         return
-    # TODO: Follow artist
+    try:
+        add_artist_to_db(artist)
+        await message.channel.send('%s has been followed!' % artist.name)
+    except ArtistAlreadyExistsException:
+        await message.channel.send('You are already following %s!' % artist.name)
 
 
 async def unfollow_artist(message):
