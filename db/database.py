@@ -37,3 +37,11 @@ def remove_artist_from_db(artist_name):
     con.commit()
     con.close()
 
+
+def get_all_artists_from_db():
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    cur.execute("SELECT * FROM Artists")
+    rows = cur.fetchall()
+    return [x[1] for x in rows]
+

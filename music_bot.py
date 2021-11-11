@@ -15,14 +15,14 @@ async def on_message(message):
     if message.author == client.user or message.channel.name != 'music':
         return
 
-    if message.content.startswith('-follow'):
+    if message.content.startswith('-follow '):
         await follow_artist(message)
     elif message.content.startswith('-unfollow'):
         await unfollow_artist(message)
-    elif message.content.startswith('-followlist'):
+    elif message.content.startswith('-list'):
         await show_follows(message)
-    elif message.content.startswith('-help '):
-        await show_help()
+    elif message.content.startswith('-help'):
+        await show_help(message)
 
 
 async def follow_artist(message):
@@ -55,10 +55,11 @@ async def unfollow_artist(message):
 
 
 async def show_follows(message):
-    pass
+    artists = get_all_artists_from_db()
+    await message.channel.send("Following Artists: %s" % artists)
 
 
-async def show_help():
+async def show_help(message):
     pass
 
 
