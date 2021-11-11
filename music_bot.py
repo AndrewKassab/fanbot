@@ -1,13 +1,20 @@
-import discord
 from spotify import *
 from db.database import *
+from discord.ext import tasks, commands
 
-client = discord.Client()
+client = commands.Bot(command_prefix="/")
 
 
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
+
+
+@tasks.loop(minutes=1)
+async def send_new_releases():
+    print('here')
+    channel = client.get_channel(885018850981195817)
+    await channel.send("hello")
 
 
 @client.event
@@ -21,8 +28,6 @@ async def on_message(message):
         await unfollow_artist(message)
     elif message.content.startswith('-list'):
         await show_follows(message)
-    elif message.content.startswith('-help'):
-        await show_help(message)
 
 
 async def follow_artist(message):
@@ -57,10 +62,6 @@ async def unfollow_artist(message):
 async def show_follows(message):
     artists = get_all_artists_from_db()
     await message.channel.send("Following Artists: %s" % artists)
-
-
-async def show_help(message):
-    pass
 
 
 async def check_new_releases():
