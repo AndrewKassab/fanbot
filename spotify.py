@@ -35,15 +35,20 @@ def get_artist_by_name(artist_name):
 
 # New means current day
 def get_new_releases_by_artist_id(artist_id):
-    new_releases = []
+    possible_new_releases = []
     curr_date = datetime.today().strftime('%Y-%m-%d')
     artist_albums = []
     offset = 0
     while (len(artist_albums) != 0) or (offset == 0):
         artist_albums = sp.artist_albums(artist_id, limit=50, offset=offset)['items']
-        new_releases.extend(filter_releases_by_date(artist_albums, curr_date))
+        possible_new_releases.extend(filter_releases_by_date(artist_albums, curr_date))
         offset += 50
-    return new_releases
+    # Sometimes spotify creates 'albums' featuring multiple artists, we don't want to share these
+    actual_new_releases = []
+    for release in possible_new_releases:
+        if release['artists'][0]['name'] != 'Various Artists':
+            actual_new_releases.append(release)
+    return actual_new_releases
 
 
 def filter_releases_by_date(albums, date):

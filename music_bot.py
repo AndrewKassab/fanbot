@@ -17,16 +17,14 @@ async def on_ready():
     send_new_releases.start()
 
 
-@tasks.loop(seconds=15)
+@tasks.loop(minutes=1)
 async def send_new_releases():
     channel = client.get_channel(music_channel_id)
     artists = get_all_artists_from_db()
     for artist in artists:
-        print(artist.name)
         new_releases = get_new_releases_by_artist_id(artist.id)
-        print(new_releases)
         if len(new_releases) > 0:
-            await channel.send("%s has a new song!: " % artist.name)
+            await channel.send("%s has a new release! : %s" % (artist.name, new_releases[0]['external_urls']['spotify']))
 
 
 @slash.slash(
