@@ -24,7 +24,7 @@ async def send_new_releases():
     for artist in artists:
         newest_release = get_newest_release_by_artist_id(artist.id)
         if newest_release is None:
-            return
+            continue
         latest_notified_release_id = get_latest_notified_release_for_artist_id(artist.id)
         newest_release_id = newest_release['id']
         # If we haven't already notified the channel of this release
