@@ -34,7 +34,8 @@ def get_artist_by_name(artist_name):
 
 
 # New means current day
-def get_new_releases_by_artist_id(artist_id):
+# TODO: Filter down to one song, newest
+def get_newest_release_by_artist_id(artist_id):
     possible_new_releases = []
     curr_date = datetime.today().strftime('%Y-%m-%d')
     artist_albums = []
@@ -57,3 +58,4 @@ def filter_releases_by_date(albums, date):
         if item['release_date'] == date:
             new_items.append(item)
     return new_items
+

@@ -22,9 +22,15 @@ async def send_new_releases():
     channel = client.get_channel(music_channel_id)
     artists = get_all_artists_from_db()
     for artist in artists:
-        new_releases = get_new_releases_by_artist_id(artist.id)
-        if len(new_releases) > 0:
-            await channel.send("%s has a new release! : %s" % (artist.name, new_releases[0]['external_urls']['spotify']))
+        newest_release = get_newest_release_by_artist_id(artist.id)
+        if newest_release is None:
+            return
+        latest_notified_release_id = get_latest_notified_release_for_artist_id(artist.id)
+        newest_release_id = newest_release['id']
+        # If we haven't already notified the channel of this release
+        if latest_notified_release_id != newest_release_id:
+                set_latest_notified_release_for_artist_id(artist_id=artist.id, new_release_id=newest_release_id)
+                await channel.send("%s has a new release! : %s" % (artist.name, new_releases[0]['external_urls']['spotify']))
 
 
 @slash.slash(

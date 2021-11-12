@@ -44,5 +44,24 @@ def get_all_artists_from_db():
     cur = con.cursor()
     cur.execute("SELECT * FROM Artists")
     rows = cur.fetchall()
-    return [Artist(name=row[1], id=row[0]) for row in rows]
+    all_artists = [Artist(name=row[1], id=row[0]) for row in rows]
+    con.close()
+    return all_artists
+
+
+def get_latest_notified_release_for_artist_id(artist_id):
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    cur.execute("SELECT latest_release_id from Artists WHERE artist_id='%s'" % artist_id)
+    latest_notified_release_id = cur.fetchall()[0][0]
+    con.close()
+    return latest_notified_release_id
+
+
+def set_latest_notified_release_for_artist_id(new_release_id, artist_id):
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    cur.execute("UPDATE Artists SET latest_release_id='%s' WHERE artist_id='%s'" % (new_release_id, artist_id))
+    con.commit()
+    con.close()
 
