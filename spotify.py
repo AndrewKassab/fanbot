@@ -34,7 +34,6 @@ def get_artist_by_name(artist_name):
 
 
 # New means current day
-# TODO: Filter down to one song, newest
 def get_newest_release_by_artist_id(artist_id):
     possible_new_releases = []
     curr_date = datetime.today().strftime('%Y-%m-%d')
@@ -49,7 +48,17 @@ def get_newest_release_by_artist_id(artist_id):
     for release in possible_new_releases:
         if release['artists'][0]['name'] != 'Various Artists':
             actual_new_releases.append(release)
-    return actual_new_releases
+    if len(actual_new_releases) > 0:
+        return get_ideal_newest_release(actual_new_releases)
+    return None
+
+
+# If there is an album, just return that instead of all the songs in it, otherwise just get a song
+def get_ideal_newest_release(releases):
+    for release in releases:
+        if release['type'] == 'album':
+            return release
+    return releases[0]
 
 
 def filter_releases_by_date(albums, date):

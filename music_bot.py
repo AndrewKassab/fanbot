@@ -29,8 +29,8 @@ async def send_new_releases():
         newest_release_id = newest_release['id']
         # If we haven't already notified the channel of this release
         if latest_notified_release_id != newest_release_id:
-                set_latest_notified_release_for_artist_id(artist_id=artist.id, new_release_id=newest_release_id)
-                await channel.send("%s has a new release! : %s" % (artist.name, new_releases[0]['external_urls']['spotify']))
+            set_latest_notified_release_for_artist_id(artist_id=artist.id, new_release_id=newest_release_id)
+            await channel.send("%s has a new release! : %s" % (artist.name, newest_release['external_urls']['spotify']))
 
 
 @slash.slash(

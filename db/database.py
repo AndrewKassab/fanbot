@@ -21,7 +21,7 @@ def add_artist_to_db(artist):
     con = sqlite3.connect(db_path)
     cur = con.cursor()
     try:
-        cur.execute("INSERT INTO Artists VALUES('%s','%s')" % (artist.id, artist.name) )
+        cur.execute("INSERT INTO Artists(artist_id, name) VALUES('%s','%s')" % (artist.id, artist.name))
     except sqlite3.IntegrityError:
         raise ArtistAlreadyExistsException()
     con.commit()
