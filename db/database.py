@@ -30,10 +30,10 @@ def add_artist_to_db(artist):
 def remove_artist_from_db(artist_name):
     con = sqlite3.connect(db_path)
     cur = con.cursor()
-    cur.execute("SELECT * FROM Artists WHERE name='%s'" % artist_name)
+    cur.execute("SELECT * FROM Artists WHERE UPPER(name)='%s'" % str.upper(artist_name))
     if len(cur.fetchall()) <= 0:
         raise NotFollowingArtistException
-    cur.execute("DELETE FROM Artists WHERE name='%s'" % artist_name)
+    cur.execute("DELETE FROM Artists WHERE UPPER(name)='%s'" % str.upper(artist_name))
     con.commit()
     con.close()
 

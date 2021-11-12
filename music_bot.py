@@ -48,16 +48,28 @@ async def follow_artist(ctx: SlashContext, artist_name: str):
         await ctx.send('You are already following %s!' % artist.name)
 
 
-async def unfollow_artist(message):
-    artist_name = message.content[10:]
+@slash.slash(
+    name="unfollow",
+    description="unfollow artist",
+    guild_ids=guild_ids,
+    options=[
+        create_option(
+            name="artist_name",
+            description="The name of the artist",
+            option_type=3,
+            required=True
+        )
+    ]
+)
+async def unfollow_artist(ctx: SlashContext, artist_name: str):
     if (len(artist_name)) == 0:
-        await message.channel.send('Please specify an artist name after this command')
+        await ctx.send('Please specify an artist name after this command')
         return
     try:
         remove_artist_from_db(artist_name)
-        await message.channel.send('%s has been unfollowed!' % artist_name)
+        await ctx.send('%s has been unfollowed!' % artist_name)
     except NotFollowingArtistException:
-        await message.channel.send('You are not following any artist named %s!' % artist_name)
+        await ctx.send('You are not following any artist named %s!' % artist_name)
 
 
 async def show_follows(message):
@@ -69,4 +81,4 @@ async def check_new_releases():
     pass
 
 
-client.run('ODg1MDAwODg4MTMxOTE1Nzk5.YTgrTg.Zb-DwOa6kXp42_5z-B-RLirQEjE')
+client.run(os.environ.get('MUSIC_BOT_TOKEN'))
