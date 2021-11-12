@@ -1,8 +1,13 @@
 from spotify import *
 from db.database import *
 from discord.ext import tasks, commands
+from discord_slash import SlashCommand, SlashContext
+from discord_slash.utils.manage_commands import create_option
 
 client = commands.Bot(command_prefix="/")
+slash = SlashCommand(client, sync_commands=True)
+
+guild_ids = [698320737739603980]
 
 
 @client.event
@@ -17,34 +22,30 @@ async def send_new_releases():
     await channel.send("hello")
 
 
-@client.event
-async def on_message(message):
-    if message.author == client.user or message.channel.name != 'music':
-        return
-
-    if message.content.startswith('-follow '):
-        await follow_artist(message)
-    elif message.content.startswith('-unfollow'):
-        await unfollow_artist(message)
-    elif message.content.startswith('-list'):
-        await show_follows(message)
-
-
-async def follow_artist(message):
-    artist_name = message.content[8:]
-    if (len(artist_name)) == 0:
-        await message.channel.send('Please specify an artist name after this command')
-        return
+@slash.slash(
+    name="follow",
+    description="follow artist",
+    guild_ids=guild_ids,
+    options=[
+        create_option(
+            name="artist_name",
+            description="The name of the artist",
+            option_type=3,
+            required=True
+        )
+    ]
+)
+async def follow_artist(ctx: SlashContext, artist_name: str):
     try:
         artist = get_artist_by_name(str(artist_name))
     except InvalidArtistException:
-        await message.channel.send(InvalidArtistException)
+        await ctx.send("Artist not found")
         return
     try:
         add_artist_to_db(artist)
-        await message.channel.send('%s has been followed!' % artist.name)
+        await ctx.send('%s has been followed!' % artist.name)
     except ArtistAlreadyExistsException:
-        await message.channel.send('You are already following %s!' % artist.name)
+        await ctx.send('You are already following %s!' % artist.name)
 
 
 async def unfollow_artist(message):
@@ -68,4 +69,4 @@ async def check_new_releases():
     pass
 
 
-client.run(os.getenv('MUSIC_BOT_TOKEN'))
+client.run('ODg1MDAwODg4MTMxOTE1Nzk5.YTgrTg.Zb-DwOa6kXp42_5z-B-RLirQEjE')
