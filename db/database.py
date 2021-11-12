@@ -1,5 +1,6 @@
 import sqlite3
 import os
+from spotify import Artist
 
 db_path = os.path.abspath(os.path.dirname(__file__) + "/database.db")
 
@@ -43,5 +44,5 @@ def get_all_artists_from_db():
     cur = con.cursor()
     cur.execute("SELECT * FROM Artists")
     rows = cur.fetchall()
-    return [x[1] for x in rows]
+    return [Artist(name=row[1], id=row[0]) for row in rows]
 

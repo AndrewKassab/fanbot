@@ -8,18 +8,25 @@ client = commands.Bot(command_prefix="/")
 slash = SlashCommand(client, sync_commands=True)
 
 guild_ids = [698320737739603980]
+music_channel_id = 885018850981195817
 
 
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
+    send_new_releases.start()
 
 
-@tasks.loop(minutes=1)
+@tasks.loop(seconds=15)
 async def send_new_releases():
-    print('here')
-    channel = client.get_channel(885018850981195817)
-    await channel.send("hello")
+    channel = client.get_channel(music_channel_id)
+    artists = get_all_artists_from_db()
+    for artist in artists:
+        print(artist.name)
+        new_releases = get_new_releases_by_artist_id(artist.id)
+        print(new_releases)
+        if len(new_releases) > 0:
+            await channel.send("%s has a new song!: " % artist.name)
 
 
 @slash.slash(
@@ -72,13 +79,14 @@ async def unfollow_artist(ctx: SlashContext, artist_name: str):
         await ctx.send('You are not following any artist named %s!' % artist_name)
 
 
-async def show_follows(message):
+@slash.slash(
+    name="list",
+    description="list followed artists",
+    guild_ids=guild_ids,
+)
+async def list_follows(ctx: SlashContext):
     artists = get_all_artists_from_db()
-    await message.channel.send("Following Artists: %s" % artists)
-
-
-async def check_new_releases():
-    pass
+    await ctx.send("Following Artists: %s" % list(artist.name for artist in artists))
 
 
 client.run(os.environ.get('MUSIC_BOT_TOKEN'))
