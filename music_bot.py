@@ -73,9 +73,6 @@ async def follow_artist(ctx: SlashContext, artist_name: str):
     ]
 )
 async def unfollow_artist(ctx: SlashContext, artist_name: str):
-    if (len(artist_name)) == 0:
-        await ctx.send('Please specify an artist name after this command')
-        return
     try:
         remove_artist_from_db(artist_name)
         await ctx.send('%s has been unfollowed!' % artist_name)
