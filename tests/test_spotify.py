@@ -15,10 +15,9 @@ class TestSpotify(unittest.TestCase):
         self.assertEqual(artist_id, self.valid_artist_true_id)
 
     def test_get_artist_newest_release(self):
-        newest_releases = get_new_releases_by_artist_id(self.valid_artist_true_id)
+        newest_release = get_newest_release_by_artist_id(self.valid_artist_true_id)
         curr_date = datetime.today().strftime('%Y-%m-%d')
-        for release in newest_releases:
-            self.assertTrue(release['release_date'] == curr_date)
+        self.assertTrue(newest_release['release_date'] == curr_date)
 
 
 if __name__ == '__main__':
