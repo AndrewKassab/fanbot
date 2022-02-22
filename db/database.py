@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from spotify import Artist
+from utils.spotify import Artist
 
 db_path = os.path.abspath(os.path.dirname(__file__) + "/database.db")
 

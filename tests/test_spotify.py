@@ -1,5 +1,5 @@
+from utils.spotify import *
 import unittest
-from spotify import *
 
 
 class TestSpotify(unittest.TestCase):
@@ -11,13 +11,14 @@ class TestSpotify(unittest.TestCase):
         self.assertRaises(InvalidArtistException, get_artist_by_name, "invalid artist name")
 
     def test_get_artist_id_valid(self):
-        artist_id = get_artist_by_name(self.valid_artist_name)
-        self.assertEqual(artist_id, self.valid_artist_true_id)
+        artist = get_artist_by_name(self.valid_artist_name)
+        self.assertEqual(self.valid_artist_true_id, artist.id)
 
     def test_get_artist_newest_release(self):
         newest_release = get_newest_release_by_artist_id(self.valid_artist_true_id)
         curr_date = datetime.today().strftime('%Y-%m-%d')
-        self.assertTrue(newest_release['release_date'] == curr_date)
+        if newest_release:
+            self.assertTrue(newest_release['release_date'] == curr_date)
 
 
 if __name__ == '__main__':

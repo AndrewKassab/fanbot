@@ -43,7 +43,7 @@ def get_newest_release_by_artist_id(artist_id):
         artist_albums = sp.artist_albums(artist_id, limit=50, offset=offset)['items']
         possible_new_releases.extend(filter_releases_by_date(artist_albums, curr_date))
         offset += 50
-    # Sometimes spotify creates 'albums' featuring multiple artists, we don't want to share these
+    # Sometimes utils creates 'albums' featuring multiple artists, we don't want to share these
     actual_new_releases = []
     for release in possible_new_releases:
         if release['artists'][0]['name'] != 'Various Artists':

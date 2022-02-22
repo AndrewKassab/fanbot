@@ -1,4 +1,4 @@
-from spotify import *
+from utils.spotify import *
 from db.database import *
 from discord.ext import tasks, commands
 from discord_slash import SlashCommand, SlashContext
@@ -30,7 +30,7 @@ async def send_new_releases():
         # If we haven't already notified the channel of this release
         if latest_notified_release_id != newest_release_id:
             set_latest_notified_release_for_artist_id(artist_id=artist.id, new_release_id=newest_release_id)
-            await channel.send("%s has a new release! : %s" % (artist.name, newest_release['external_urls']['spotify']))
+            await channel.send("%s has a new release! : %s" % (artist.name, newest_release['external_urls']['utils']))
 
 
 @slash.slash(

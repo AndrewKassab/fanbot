@@ -4,3 +4,4 @@ __pycache__/
 tests/__pycache__/
 *.db
 *.cache*
+*.pyc
