@@ -56,9 +56,13 @@ def get_newest_release_by_artist_id(artist_id):
 # If there is an album, just return that instead of all the songs in it, otherwise just get a song
 def get_ideal_newest_release(releases):
     for release in releases:
-        if release['type'] == 'album':
+        if release['type'] == 'album' and release['album_type'] != 'single':
             return release
-    return releases[0]
+    release = releases[0]
+    if release['album_type'] == 'single':
+        tracks = sp.album_tracks(releases[0]['id'])
+        release = tracks['items'][0]
+    return release
 
 
 def filter_releases_by_date(albums, date):
