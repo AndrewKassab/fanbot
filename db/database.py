@@ -21,7 +21,8 @@ def add_artist_to_db(artist):
     con = sqlite3.connect(db_path)
     cur = con.cursor()
     try:
-        cur.execute("INSERT INTO Artists(artist_id, name) VALUES('%s','%s')" % (artist.id, artist.name))
+        cur.execute("INSERT INTO Artists(artist_id, name, role_id) VALUES('%s','%s','%s')"
+                    % (artist.id, artist.name, artist.role_id))
     except sqlite3.IntegrityError:
         raise ArtistAlreadyExistsException()
     con.commit()
@@ -44,7 +45,7 @@ def get_all_artists_from_db():
     cur = con.cursor()
     cur.execute("SELECT * FROM Artists")
     rows = cur.fetchall()
-    all_artists = [Artist(name=row[1], id=row[0]) for row in rows]
+    all_artists = [Artist(name=row[1], artist_id=row[0], role_id=row[2]) for row in rows]
     con.close()
     return all_artists
 

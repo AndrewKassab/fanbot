@@ -31,7 +31,7 @@ async def send_new_releases():
         if latest_notified_release_id != newest_release_id:
             set_latest_notified_release_for_artist_id(artist_id=artist.id, new_release_id=newest_release_id)
             release_url = newest_release['external_urls']['spotify']
-            await channel.send("%s has a new release! : %s" % (artist.name, release_url))
+            await channel.send("<@&%s> %s has a new release! : %s" % (artist.role_id, artist.name, release_url))
 
 
 @slash.slash(
@@ -54,9 +54,12 @@ async def follow_artist(ctx: SlashContext, artist_name: str):
         await ctx.send("Artist not found")
         return
     try:
+        role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'fan'))
+        artist.role_id = role.id
         add_artist_to_db(artist)
+        await ctx.author.add_roles(role)
         await ctx.send('%s has been followed!' % artist.name)
-    except ArtistAlreadyExistsException:
+    except ArtistAlreadyExistsException or Exception:
         await ctx.send('You are already following %s!' % artist.name)
 
 
