@@ -10,6 +10,8 @@ slash = SlashCommand(client, sync_commands=True)
 guild_ids = [698320737739603980]
 music_channel_id = 885018850981195817
 
+FOLLOW_ROLE_EMOJI = ''
+UNFOLLOW_ROLE_EMOJI = ''
 
 @client.event
 async def on_ready():
@@ -54,11 +56,11 @@ async def follow_artist(ctx: SlashContext, artist_name: str):
         await ctx.send("Artist not found")
         return
     try:
-        role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'fan'))
+        role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
         artist.role_id = role.id
         add_artist_to_db(artist)
         await ctx.author.add_roles(role)
-        await ctx.send('%s has been followed!' % artist.name)
+        await ctx.send('<@&%s> %s has been followed!' % (artist.role_id, artist.name))
     except ArtistAlreadyExistsException or Exception:
         await ctx.send('You are already following %s!' % artist.name)
 
@@ -93,5 +95,19 @@ async def list_follows(ctx: SlashContext):
     artists = get_all_artists_from_db()
     await ctx.send("Following Artists: %s" % list(artist.name for artist in artists))
 
+
+# TODO:
+@client.event
+async def on_reaction_add_role(reaction, user):
+    if user != client.user:
+        role_id = reaction.message.content.split()[0]
+        if str(reaction.emoji) == FOLLOW_ROLE_EMOJI:
+            pass
+            # TODO Add role to user
+        elif str(reaction.emoji) == UNFOLLOW_ROLE_EMOJI:
+            pass
+            # TODO Remove role from user
+
+    pass
 
 client.run(os.environ.get('MUSIC_BOT_TOKEN'))
