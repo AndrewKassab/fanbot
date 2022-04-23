@@ -10,8 +10,9 @@ slash = SlashCommand(client, sync_commands=True)
 guild_ids = [698320737739603980]
 music_channel_id = 885018850981195817
 
-FOLLOW_ROLE_EMOJI = ''
-UNFOLLOW_ROLE_EMOJI = ''
+FOLLOW_ROLE_EMOJI = '✅'
+UNFOLLOW_ROLE_EMOJI = '❌'
+
 
 @client.event
 async def on_ready():
@@ -53,7 +54,7 @@ async def follow_artist(ctx: SlashContext, artist_name: str):
     try:
         artist = get_artist_by_name(str(artist_name))
     except InvalidArtistException:
-        await ctx.send("Artist not found")
+        await ctx.send("Artist %s not found" % artist_name)
         return
     try:
         role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
@@ -65,6 +66,7 @@ async def follow_artist(ctx: SlashContext, artist_name: str):
         await ctx.send('You are already following %s!' % artist.name)
 
 
+# TODO: Delete the role associated with this artist
 @slash.slash(
     name="unfollow",
     description="unfollow artist",
@@ -98,16 +100,23 @@ async def list_follows(ctx: SlashContext):
 
 # TODO:
 @client.event
-async def on_reaction_add_role(reaction, user):
-    if user != client.user:
-        role_id = reaction.message.content.split()[0]
-        if str(reaction.emoji) == FOLLOW_ROLE_EMOJI:
-            pass
+async def on_raw_reaction_add(payload):
+    channel = await client.fetch_channel(payload.channel_id)
+    message = await channel.fetch_message(payload.message_id)
+    user = await client.fetch_user(payload.user_id)
+    guild = channel.guild
+    reaction = payload.emoji
+    # Make sure this is a reaction to a valid message (one with a role)
+    if user != client.user and message.content[1] == '@':
+        role_string = message.content.split()[0]
+        role_id = int(role_string[3:len(role_string)-1])
+        role = guild.get_role(role_id=role_id)
+        if reaction.name == FOLLOW_ROLE_EMOJI:
+            print('were here')
             # TODO Add role to user
-        elif str(reaction.emoji) == UNFOLLOW_ROLE_EMOJI:
-            pass
+        elif reaction.name == UNFOLLOW_ROLE_EMOJI:
+            print('were here two')
             # TODO Remove role from user
 
-    pass
 
 client.run(os.environ.get('MUSIC_BOT_TOKEN'))
