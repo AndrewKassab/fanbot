@@ -3,6 +3,7 @@ from db.database import *
 from discord.ext import tasks, commands
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_option
+from discord import Embed
 
 client = commands.Bot(command_prefix="/")
 slash = SlashCommand(client, sync_commands=True)
@@ -34,11 +35,11 @@ async def send_new_releases():
         if latest_notified_release_id != newest_release_id:
             set_latest_notified_release_for_artist_id(artist_id=artist.id, new_release_id=newest_release_id)
             release_url = newest_release['external_urls']['spotify']
-            message = await channel.send("<@&%s> %s has a new release! : %s" % (artist.role_id, artist.name, release_url))
+            message = await channel.send("<@&%s> New Release!\nAssign Role: :white_check_mark: "
+                                         "Remove Role: :x: %s" % (artist.role_id, artist.name, release_url))
             await add_role_reactions_to_message(message)
 
 
-# TODO: Fix refollow same artist creates duplicate role
 @slash.slash(
     name="follow",
     description="follow artist",
@@ -66,7 +67,8 @@ async def follow_artist(ctx: SlashContext, artist_name: str):
         role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
         artist.role_id = role.id
         add_artist_to_db(artist)
-        message = await ctx.send('<@&%s> %s has been followed!' % (artist.role_id, artist.name))
+        message = await ctx.send("<@&%s> %s has been followed!\nAssign Role: :white_check_mark: Remove Role: :x:"
+                                 % (artist.role_id, artist.name))
         await add_role_reactions_to_message(message)
     await ctx.author.add_roles(role)
 
