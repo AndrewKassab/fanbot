@@ -3,12 +3,10 @@ from db.database import *
 from discord.ext import tasks, commands
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_option
-from discord import Embed
 
 client = commands.Bot(command_prefix="/")
 slash = SlashCommand(client, sync_commands=True)
 
-guild_ids = [698320737739603980]
 music_channel_id = 885018850981195817
 
 FOLLOW_ROLE_EMOJI = '✅'
@@ -21,6 +19,7 @@ async def on_ready():
     send_new_releases.start()
 
 
+# You could optimize this by avoiding spotify calls if we've already updated for this artist within this day
 @tasks.loop(minutes=1)
 async def send_new_releases():
     channel = client.get_channel(music_channel_id)
@@ -36,14 +35,13 @@ async def send_new_releases():
             set_latest_notified_release_for_artist_id(artist_id=artist.id, new_release_id=newest_release_id)
             release_url = newest_release['external_urls']['spotify']
             message = await channel.send("<@&%s> New Release!\nAssign Role: :white_check_mark: "
-                                         "Remove Role: :x: %s" % (artist.role_id, artist.name, release_url))
+                                         "Remove Role: :x: %s" % (artist.role_id, release_url))
             await add_role_reactions_to_message(message)
 
 
 @slash.slash(
     name="follow",
     description="follow artist",
-    guild_ids=guild_ids,
     options=[
         create_option(
             name="artist_name",
@@ -76,7 +74,6 @@ async def follow_artist(ctx: SlashContext, artist_name: str):
 @slash.slash(
     name="unfollow",
     description="unfollow artist",
-    guild_ids=guild_ids,
     options=[
         create_option(
             name="artist_name",
@@ -91,7 +88,8 @@ async def unfollow_artist(ctx: SlashContext, artist_name: str):
         artist = get_artist_from_db(artist_name)
         remove_artist_from_db(artist_name)
         role = ctx.guild.get_role(int(artist.role_id))
-        await role.delete()
+        if role is not None:
+            await role.delete()
         await ctx.send('%s has been unfollowed!' % artist_name)
     except NotFollowingArtistException:
         await ctx.send('You are not following any artist named %s!' % artist_name)
@@ -100,7 +98,6 @@ async def unfollow_artist(ctx: SlashContext, artist_name: str):
 @slash.slash(
     name="list",
     description="list followed artists",
-    guild_ids=guild_ids,
 )
 async def list_follows(ctx: SlashContext):
     artists = get_all_artists_from_db()
