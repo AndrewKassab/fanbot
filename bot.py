@@ -98,25 +98,25 @@ async def list_follows(ctx: SlashContext):
     await ctx.send("Following Artists: %s" % list(artist.name for artist in artists))
 
 
-# TODO:
 @client.event
 async def on_raw_reaction_add(payload):
     channel = await client.fetch_channel(payload.channel_id)
     message = await channel.fetch_message(payload.message_id)
     user = await client.fetch_user(payload.user_id)
     guild = channel.guild
+    member = payload.member
     reaction = payload.emoji
     # Make sure this is a reaction to a valid message (one with a role)
     if user != client.user and message.content[1] == '@':
         role_string = message.content.split()[0]
         role_id = int(role_string[3:len(role_string)-1])
         role = guild.get_role(role_id=role_id)
+        if role is None:
+            return
         if reaction.name == FOLLOW_ROLE_EMOJI:
-            print('were here')
-            # TODO Add role to user
+            await member.add_roles(role)
         elif reaction.name == UNFOLLOW_ROLE_EMOJI:
-            print('were here two')
-            # TODO Remove role from user
+            await member.remove_roles(role)
 
 
 client.run(os.environ.get('MUSIC_BOT_TOKEN'))
