@@ -34,9 +34,11 @@ async def send_new_releases():
         if latest_notified_release_id != newest_release_id:
             set_latest_notified_release_for_artist_id(artist_id=artist.id, new_release_id=newest_release_id)
             release_url = newest_release['external_urls']['spotify']
-            await channel.send("<@&%s> %s has a new release! : %s" % (artist.role_id, artist.name, release_url))
+            message = await channel.send("<@&%s> %s has a new release! : %s" % (artist.role_id, artist.name, release_url))
+            await add_role_reactions_to_message(message)
 
 
+# TODO: Fix refollow same artist creates duplicate role
 @slash.slash(
     name="follow",
     description="follow artist",
@@ -56,17 +58,19 @@ async def follow_artist(ctx: SlashContext, artist_name: str):
     except InvalidArtistException:
         await ctx.send("Artist %s not found" % artist_name)
         return
-    try:
+    artist_in_db = get_artist_from_db(artist.name)
+    if artist_in_db is not None:
+        role = ctx.guild.get_role(int(artist_in_db.role_id))
+        await ctx.send('This server is already following %s! We\'ve assigned you the corresponding role.' % artist_in_db.name)
+    else:
         role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
         artist.role_id = role.id
         add_artist_to_db(artist)
-        await ctx.author.add_roles(role)
-        await ctx.send('<@&%s> %s has been followed!' % (artist.role_id, artist.name))
-    except ArtistAlreadyExistsException or Exception:
-        await ctx.send('You are already following %s!' % artist.name)
+        message = await ctx.send('<@&%s> %s has been followed!' % (artist.role_id, artist.name))
+        await add_role_reactions_to_message(message)
+    await ctx.author.add_roles(role)
 
 
-# TODO: Delete the role associated with this artist
 @slash.slash(
     name="unfollow",
     description="unfollow artist",
@@ -82,7 +86,10 @@ async def follow_artist(ctx: SlashContext, artist_name: str):
 )
 async def unfollow_artist(ctx: SlashContext, artist_name: str):
     try:
+        artist = get_artist_from_db(artist_name)
         remove_artist_from_db(artist_name)
+        role = ctx.guild.get_role(int(artist.role_id))
+        await role.delete()
         await ctx.send('%s has been unfollowed!' % artist_name)
     except NotFollowingArtistException:
         await ctx.send('You are not following any artist named %s!' % artist_name)
@@ -117,6 +124,11 @@ async def on_raw_reaction_add(payload):
             await member.add_roles(role)
         elif reaction.name == UNFOLLOW_ROLE_EMOJI:
             await member.remove_roles(role)
+
+
+async def add_role_reactions_to_message(message):
+    await message.add_reaction(FOLLOW_ROLE_EMOJI)
+    await message.add_reaction(UNFOLLOW_ROLE_EMOJI)
 
 
 client.run(os.environ.get('MUSIC_BOT_TOKEN'))

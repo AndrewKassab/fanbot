@@ -50,6 +50,19 @@ def get_all_artists_from_db():
     return all_artists
 
 
+def get_artist_from_db(artist_name):
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    cur.execute("SELECT * FROM Artists WHERE UPPER(name)='%s'" % str.upper(artist_name))
+    rows = cur.fetchall()
+    if len(rows) <= 0:
+        return None
+    row = rows[0]
+    artist = Artist(name=row[1], artist_id=row[0], role_id=row[2])
+    con.close()
+    return artist
+
+
 def get_latest_notified_release_for_artist_id(artist_id):
     con = sqlite3.connect(db_path)
     cur = con.cursor()
