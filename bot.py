@@ -25,6 +25,10 @@ async def send_new_releases():
     channel = client.get_channel(music_channel_id)
     artists = get_all_artists_from_db()
     for artist in artists:
+        artist_role = channel.guild.get_role(artist.role_id)
+        if artist_role is None:
+            remove_artist_from_db(artist.name)
+            continue
         newest_release = get_newest_release_by_artist_id(artist.id)
         if newest_release is None:
             continue
