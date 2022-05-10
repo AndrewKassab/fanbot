@@ -48,18 +48,18 @@ async def send_new_releases():
     description="follow artist",
     options=[
         create_option(
-            name="artist_name",
-            description="The name of the artist",
+            name="artist_name_or_id",
+            description="The name of the artist or their id",
             option_type=3,
             required=True
         )
     ]
 )
-async def follow_artist(ctx: SlashContext, artist_name: str):
+async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
     try:
-        artist = get_artist_by_name(str(artist_name))
+        artist = get_artist_by_name(str(artist_name_or_id))
     except InvalidArtistException:
-        await ctx.send("Artist %s not found" % artist_name)
+        await ctx.send("Artist %s not found" % artist_name_or_id)
         return
     artist_in_db = get_artist_from_db(artist.name)
     if artist_in_db is not None:

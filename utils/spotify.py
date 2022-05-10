@@ -2,6 +2,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import os
 from datetime import datetime
+from spotipy.exceptions import SpotifyException
 
 
 class InvalidArtistException(Exception):
@@ -24,14 +25,18 @@ client_secret = os.getenv('MUSIC_BOT_CLIENT_SECRET')
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
 
 
-def get_artist_by_name(artist_name):
-    results = sp.search(q='artist:' + artist_name, type='artist')
-    items = results['artists']['items']
-    if len(items) > 0:
-        artist = items[0]
-        return Artist(artist['name'], artist['id'])
-    else:
-        raise InvalidArtistException
+def get_artist_by_name(artist_name_or_id):
+    try:
+        result = sp.artist(artist_name_or_id)
+        return Artist(result['name'], result['id'])
+    except SpotifyException:
+        results = sp.search(q='artist:' + artist_name_or_id, type='artist')
+        items = results['artists']['items']
+        if len(items) > 0:
+            artist = items[0]
+            return Artist(artist['name'], artist['id'])
+        else:
+            raise InvalidArtistException
 
 
 # New means current day
