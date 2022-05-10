@@ -39,7 +39,7 @@ async def send_new_releases():
             set_latest_notified_release_for_artist_id(artist_id=artist.id, new_release_id=newest_release_id)
             release_url = newest_release['external_urls']['spotify']
             message = await channel.send("<@&%s> New Release!\nAssign Role: :white_check_mark: "
-                                         "Remove Role: :x: %s" % (artist.role_id, release_url))
+                                         "Remove Role: :x: \n%s" % (artist.role_id, release_url))
             await add_role_reactions_to_message(message)
 
 
