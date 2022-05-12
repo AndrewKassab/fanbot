@@ -1,5 +1,5 @@
 from utils.spotify import *
-from db.database import *
+from db.database import MusicDatabase, NotFollowingArtistException
 from discord.ext import tasks, commands
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_option
@@ -7,10 +7,15 @@ from discord_slash.utils.manage_commands import create_option
 client = commands.Bot(command_prefix="/")
 slash = SlashCommand(client, sync_commands=True)
 
-music_channel_id = 885018850981195817
+db = MusicDatabase()
 
 FOLLOW_ROLE_EMOJI = '✅'
 UNFOLLOW_ROLE_EMOJI = '❌'
+
+SET_COMMAND = "musicset"
+FOLLOW_COMMAND = "musicfollow"
+UNFOLLOW_COMMAND = "musicunfollow"
+LIST_COMMAND = "musiclist"
 
 
 @client.event
@@ -22,21 +27,24 @@ async def on_ready():
 # You could optimize this by avoiding spotify calls if we've already updated for this artist within this day
 @tasks.loop(minutes=1)
 async def send_new_releases():
-    channel = client.get_channel(music_channel_id)
-    artists = get_all_artists_from_db()
+    artists = db.get_all_artists_from_db()
     for artist in artists:
+        channel_id = db.get_music_channel_id_for_guild_id(artist.guild_id)
+        channel = client.get_channel(channel_id)
+        if channel is None:
+            continue
         artist_role = channel.guild.get_role(artist.role_id)
         if artist_role is None:
-            remove_artist_from_db(artist.name)
+            db.remove_artist_from_db(artist.name)
             continue
         newest_release = get_newest_release_by_artist_id(artist.id)
         if newest_release is None:
             continue
-        latest_notified_release_id = get_latest_notified_release_for_artist_id(artist.id)
+        latest_notified_release_id = db.get_latest_notified_release_for_artist_id(artist.id)
         newest_release_id = newest_release['id']
         # If we haven't already notified the channel of this release
         if latest_notified_release_id != newest_release_id:
-            set_latest_notified_release_for_artist_id(artist_id=artist.id, new_release_id=newest_release_id)
+            db.set_latest_notified_release_for_artist_id(artist_id=artist.id, new_release_id=newest_release_id)
             release_url = newest_release['external_urls']['spotify']
             message = await channel.send("<@&%s> New Release!\nAssign Role: :white_check_mark: "
                                          "Remove Role: :x: \n%s" % (artist.role_id, release_url))
@@ -44,7 +52,21 @@ async def send_new_releases():
 
 
 @slash.slash(
-    name="follow",
+    name=SET_COMMAND,
+    description="Use in the desired channel to receive updates",
+)
+async def set_update_channel(ctx: SlashContext):
+    if not db.is_guild_in_db(ctx.guild_id):
+        db.add_guild_to_db(ctx.guild_id, ctx.channel_id)
+        await ctx.send("Current channel successfully configured for updates.")
+    else:
+        db.update_guild_channel_id(ctx.guild_id, ctx.channel_id)
+        await ctx.send("Current channel successfully configured for updates. "
+                       f"You may begin following artists using {FOLLOW_COMMAND}.")
+
+
+@slash.slash(
+    name=FOLLOW_COMMAND,
     description="follow artist",
     options=[
         create_option(
@@ -56,19 +78,23 @@ async def send_new_releases():
     ]
 )
 async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
+    if not db.is_guild_in_db(ctx.guild_id):
+        await ctx.send(f"You must first use /{SET_COMMAND} to configure a channel to send updates to.")
+        return
     try:
         artist = get_artist_by_name(str(artist_name_or_id))
     except InvalidArtistException:
         await ctx.send("Artist %s not found" % artist_name_or_id)
         return
-    artist_in_db = get_artist_from_db(artist.name)
+    artist_in_db = db.get_artist_from_db(artist.name)
     if artist_in_db is not None:
         role = ctx.guild.get_role(int(artist_in_db.role_id))
         await ctx.send('This server is already following %s! We\'ve assigned you the corresponding role.' % artist_in_db.name)
     else:
         role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
         artist.role_id = role.id
-        add_artist_to_db(artist)
+        artist.guild_id = ctx.guild.id
+        db.add_artist_to_db(artist)
         message = await ctx.send("<@&%s> %s has been followed!\nAssign Role: :white_check_mark: Remove Role: :x:"
                                  % (artist.role_id, artist.name))
         await add_role_reactions_to_message(message)
@@ -76,7 +102,7 @@ async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
 
 
 @slash.slash(
-    name="unfollow",
+    name=UNFOLLOW_COMMAND,
     description="unfollow artist",
     options=[
         create_option(
@@ -89,8 +115,8 @@ async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
 )
 async def unfollow_artist(ctx: SlashContext, artist_name: str):
     try:
-        artist = get_artist_from_db(artist_name)
-        remove_artist_from_db(artist_name)
+        artist = db.get_artist_from_db(artist_name)
+        db.remove_artist_from_db(artist_name)
         role = ctx.guild.get_role(int(artist.role_id))
         if role is not None:
             await role.delete()
@@ -100,11 +126,11 @@ async def unfollow_artist(ctx: SlashContext, artist_name: str):
 
 
 @slash.slash(
-    name="list",
+    name=LIST_COMMAND,
     description="list followed artists",
 )
 async def list_follows(ctx: SlashContext):
-    artists = get_all_artists_from_db()
+    artists = db.get_all_artists_from_db()
     await ctx.send("Following Artists: %s" % list(artist.name for artist in artists))
 
 

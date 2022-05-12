@@ -13,10 +13,11 @@ class InvalidArtistException(Exception):
 
 class Artist:
 
-    def __init__(self, name, artist_id, role_id=None):
+    def __init__(self, name, artist_id, channel_id=None, role_id=None):
         self.name = name
         self.id = artist_id
         self.role_id = role_id
+        self.channel_id = channel_id
 
 
 client_id = os.getenv('MUSIC_BOT_CLIENT_ID')
