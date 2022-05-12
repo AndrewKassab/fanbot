@@ -62,7 +62,7 @@ async def set_update_channel(ctx: SlashContext):
     else:
         db.update_guild_channel_id(ctx.guild_id, ctx.channel_id)
         await ctx.send("Current channel successfully configured for updates. "
-                       f"You may begin following artists using {FOLLOW_COMMAND}.")
+                       f"You may begin following artists using /{FOLLOW_COMMAND}.")
 
 
 @slash.slash(
