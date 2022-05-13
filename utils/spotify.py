@@ -3,21 +3,13 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import os
 from datetime import datetime
 from spotipy.exceptions import SpotifyException
+from db.database import Artist
 
 
 class InvalidArtistException(Exception):
 
     def __init__(self):
         super().__init__("Artist not found or invalid")
-
-
-class Artist:
-
-    def __init__(self, name, artist_id, channel_id=None, role_id=None):
-        self.name = name
-        self.id = artist_id
-        self.role_id = role_id
-        self.channel_id = channel_id
 
 
 client_id = os.getenv('MUSIC_BOT_CLIENT_ID')

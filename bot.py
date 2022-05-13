@@ -30,24 +30,23 @@ async def send_new_releases():
     artists = db.get_all_artists_from_db()
     for artist in artists:
         channel_id = db.get_music_channel_id_for_guild_id(artist.guild_id)
-        channel = client.get_channel(channel_id)
+        channel = client.get_guild(int(artist.guild_id)).get_channel(int(channel_id))
         if channel is None:
             continue
-        artist_role = channel.guild.get_role(artist.role_id)
+        artist_role = channel.guild.get_role(int(artist.role_id))
         if artist_role is None:
             db.remove_artist_from_db(artist.name)
             continue
         newest_release = get_newest_release_by_artist_id(artist.id)
         if newest_release is None:
             continue
-        latest_notified_release_id = db.get_latest_notified_release_for_artist_id(artist.id)
         newest_release_id = newest_release['id']
         # If we haven't already notified the channel of this release
-        if latest_notified_release_id != newest_release_id:
+        if artist.latest_notified_release != newest_release_id:
             db.set_latest_notified_release_for_artist_id(artist_id=artist.id, new_release_id=newest_release_id)
             release_url = newest_release['external_urls']['spotify']
-            message = await channel.send("<@&%s> New Release!\nAssign Role: :white_check_mark: "
-                                         "Remove Role: :x: \n%s" % (artist.role_id, release_url))
+            message = await channel.send("<@&%s> New Release!\n:white_check_mark:: Assign Role."
+                                         ":x:: Remove Role.\n%s" % (artist.role_id, release_url))
             await add_role_reactions_to_message(message)
 
 
@@ -58,11 +57,11 @@ async def send_new_releases():
 async def set_update_channel(ctx: SlashContext):
     if not db.is_guild_in_db(ctx.guild_id):
         db.add_guild_to_db(ctx.guild_id, ctx.channel_id)
-        await ctx.send("Current channel successfully configured for updates.")
+        await ctx.send("Current channel successfully configured for updates. "
+                       f"You may begin following artists using `/{FOLLOW_COMMAND}`.")
     else:
         db.update_guild_channel_id(ctx.guild_id, ctx.channel_id)
-        await ctx.send("Current channel successfully configured for updates. "
-                       f"You may begin following artists using /{FOLLOW_COMMAND}.")
+        await ctx.send("Current channel successfully configured for updates.")
 
 
 @slash.slash(
@@ -79,7 +78,7 @@ async def set_update_channel(ctx: SlashContext):
 )
 async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
     if not db.is_guild_in_db(ctx.guild_id):
-        await ctx.send(f"You must first use /{SET_COMMAND} to configure a channel to send updates to.")
+        await ctx.send(f"You must first use `/{SET_COMMAND}` to configure a channel to send updates to.")
         return
     try:
         artist = get_artist_by_name(str(artist_name_or_id))
@@ -95,7 +94,7 @@ async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
         artist.role_id = role.id
         artist.guild_id = ctx.guild.id
         db.add_artist_to_db(artist)
-        message = await ctx.send("<@&%s> %s has been followed!\nAssign Role: :white_check_mark: Remove Role: :x:"
+        message = await ctx.send("<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
                                  % (artist.role_id, artist.name))
         await add_role_reactions_to_message(message)
     await ctx.author.add_roles(role)
