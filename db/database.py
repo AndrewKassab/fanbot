@@ -1,8 +1,17 @@
 import sqlite3
 import os
-from utils.spotify import Artist
 
 db_path = os.path.abspath(os.path.dirname(__file__) + "/database.db")
+
+
+class Artist:
+
+    def __init__(self, name, artist_id, guild_id=None, latest_notified_release=None, role_id=None):
+        self.name = name
+        self.id = artist_id
+        self.role_id = role_id
+        self.latest_notified_release = latest_notified_release
+        self.guild_id = guild_id
 
 
 class ArtistAlreadyExistsException(Exception):
@@ -30,8 +39,8 @@ class MusicDatabase:
         con = self.get_connection()
         cur = con.cursor()
         try:
-            cur.execute("INSERT INTO Artists(artist_id, name, role_id) VALUES('%s','%s','%s')"
-                        % (artist.id, artist.name, artist.role_id))
+            cur.execute("INSERT INTO Artists(artist_id, name, role_id, guild_id) VALUES('%s','%s','%s','%s')"
+                        % (artist.id, artist.name, artist.role_id, artist.guild_id))
         except self.db.IntegrityError:
             raise ArtistAlreadyExistsException()
         con.commit()
@@ -52,7 +61,8 @@ class MusicDatabase:
         cur = con.cursor()
         cur.execute("SELECT * FROM Artists")
         rows = cur.fetchall()
-        all_artists = [Artist(name=row[1], artist_id=row[0], role_id=row[2]) for row in rows]
+        all_artists = [Artist(name=row[1], artist_id=row[0], role_id=row[2], latest_notified_release=row[3],
+                              guild_id=row[4]) for row in rows]
         con.close()
         return all_artists
 
@@ -64,17 +74,9 @@ class MusicDatabase:
         if len(rows) <= 0:
             return None
         row = rows[0]
-        artist = Artist(name=row[1], artist_id=row[0], role_id=row[2])
+        artist = Artist(name=row[1], artist_id=row[0], role_id=row[2], latest_notified_release=row[3], guild_id=row[4])
         con.close()
         return artist
-
-    def get_latest_notified_release_for_artist_id(self, artist_id):
-        con = self.get_connection()
-        cur = con.cursor()
-        cur.execute("SELECT latest_release_id from Artists WHERE artist_id='%s'" % artist_id)
-        latest_notified_release_id = cur.fetchall()[0][0]
-        con.close()
-        return latest_notified_release_id
 
     def set_latest_notified_release_for_artist_id(self, new_release_id, artist_id):
         con = self.get_connection()
@@ -84,14 +86,34 @@ class MusicDatabase:
         con.close()
 
     def get_music_channel_id_for_guild_id(self, guild_id):
-        pass
+        con = self.get_connection()
+        cur = con.cursor()
+        cur.execute(f"SELECT channel_id FROM Guilds WHERE guild_id='{guild_id}'")
+        channel_id = cur.fetchall()[0][0]
+        con.close()
+        return channel_id
 
     def is_guild_in_db(self, guild_id):
-        pass
+        con = self.get_connection()
+        cur = con.cursor()
+        cur.execute(f"SELECT * FROM Guilds WHERE guild_id='{guild_id}'")
+        rows = cur.fetchall()
+        if len(rows) <= 0:
+            return False
+        return True
 
     def add_guild_to_db(self, guild_id, channel_id):
-        pass
+        con = self.get_connection()
+        cur = con.cursor()
+        cur.execute(f"INSERT INTO Guilds VALUES({guild_id},{channel_id})")
+        con.commit()
+        con.close()
 
     def update_guild_channel_id(self, guild_id, new_channel_id):
+        con = self.get_connection()
+        cur = con.cursor()
+        cur.execute(f"UPDATE Guilds SET channel_id={new_channel_id} WHERE guild_id='{guild_id}'")
+        con.commit()
+        con.close()
         pass
 
