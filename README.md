@@ -6,3 +6,5 @@ Keep your music chat on discord updated on releases from the spotify artists you
 2. /musicfollow {artist_name_or_id} - follow an artist
 3. /musicunfollow {artist_name} - unfollow an artist
 4. /musiclist - list all artists the bot is currently following.
+
+![Example Image](https://github.com/andrewkassab/mrmusic/blob/main/example.png?raw=true)
