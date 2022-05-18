@@ -1,7 +1,7 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from spotipy.exceptions import SpotifyException
 from db.database import Artist
 
@@ -35,12 +35,11 @@ def get_artist_by_name(artist_name_or_id):
 # New means current day
 def get_newest_release_by_artist_id(artist_id):
     possible_new_releases = []
-    curr_date = datetime.today().strftime('%Y-%m-%d')
     artist_albums = []
     offset = 0
     while (len(artist_albums) != 0) or (offset == 0):
         artist_albums = sp.artist_albums(artist_id, limit=50, offset=offset)['items']
-        possible_new_releases.extend(filter_releases_by_date(artist_albums, curr_date))
+        possible_new_releases.extend(filter_releases_by_date(artist_albums))
         offset += 50
     # Sometimes utils creates 'albums' featuring multiple artists, we don't want to share these
     actual_new_releases = []
@@ -64,10 +63,13 @@ def get_ideal_newest_release(releases):
     return release
 
 
-def filter_releases_by_date(albums, date):
+def filter_releases_by_date(albums):
+    curr_date = datetime.today()
+    today_string = curr_date.strftime('%Y-%m-%d')
+    tomorrow_string = (curr_date + timedelta(days=1)).strftime('%Y-%m-%d')
     new_items = []
     for item in albums:
-        if item['release_date'] == date:
+        if item['release_date'] == today_string or item['release_date'] == tomorrow_string:
             new_items.append(item)
     return new_items
 
