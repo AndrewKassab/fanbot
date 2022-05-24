@@ -115,5 +115,4 @@ class MusicDatabase:
         cur.execute(f"UPDATE Guilds SET channel_id={new_channel_id} WHERE guild_id='{guild_id}'")
         con.commit()
         con.close()
-        pass
 
