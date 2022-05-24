@@ -1,8 +1,5 @@
-import sqlite3
 import os
 import mysql.connector
-
-db_path = os.path.abspath(os.path.dirname(__file__) + "/database.db")
 
 
 class Artist:
@@ -30,11 +27,15 @@ class NotFollowingArtistException(Exception):
 class MusicDatabase:
 
     def __init__(self):
-        self.db = sqlite3
-        pass
+        self.db = mysql.connector
 
     def get_connection(self):
-        return self.db.connect(db_path)
+        return self.db.connect(
+            host='localhost',
+            user='musicbot',
+            password=os.environ.get('MUSIC_BOT_DB_PASSWORD'),
+            database='musicbot',
+        )
 
     def add_artist_to_db(self, artist):
         con = self.get_connection()
