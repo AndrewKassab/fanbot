@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import mysql.connector
 
 db_path = os.path.abspath(os.path.dirname(__file__) + "/database.db")
 
