@@ -19,16 +19,16 @@ sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id, 
 
 
 def get_artist_by_name(artist_name_or_id):
-    try:
-        result = sp.artist(artist_name_or_id)
-        return Artist(result['name'], result['id'])
-    except SpotifyException:
-        results = sp.search(q='artist:' + artist_name_or_id, type='artist')
-        items = results['artists']['items']
-        if len(items) > 0:
-            artist = items[0]
-            return Artist(artist['name'], artist['id'])
-        else:
+    results = sp.search(q='artist:' + artist_name_or_id, type='artist')
+    items = results['artists']['items']
+    if len(items) > 0:
+        artist = items[0]
+        return Artist(artist['name'], artist['id'])
+    else:
+        try:
+            result = sp.artist(artist_name_or_id)
+            return Artist(result['name'], result['id'])
+        except SpotifyException:
             raise InvalidArtistException
 
 

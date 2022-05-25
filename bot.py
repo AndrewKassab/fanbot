@@ -55,13 +55,14 @@ async def send_new_releases():
     description="Use in the desired channel to receive updates",
 )
 async def set_update_channel(ctx: SlashContext):
+    message = await ctx.send("Attempting to configure current channel for updates...")
     if not db.is_guild_in_db(ctx.guild_id):
         db.add_guild_to_db(ctx.guild_id, ctx.channel_id)
-        await ctx.send("Current channel successfully configured for updates. "
+        await message.edit(content="Current channel successfully configured for updates. "
                        f"You may begin following artists using `/{FOLLOW_COMMAND}`.")
     else:
         db.update_guild_channel_id(ctx.guild_id, ctx.channel_id)
-        await ctx.send("Current channel successfully configured for updates.")
+        await message.edit(content="Current channel successfully configured for updates.")
 
 
 @slash.slash(
@@ -77,25 +78,28 @@ async def set_update_channel(ctx: SlashContext):
     ]
 )
 async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
+    message = await ctx.send(f'Attempting to follow artist {artist_name_or_id}...')
     if not db.is_guild_in_db(ctx.guild_id):
-        await ctx.send(f"You must first use `/{SET_COMMAND}` to configure a channel to send updates to.")
+        await message.edit(content=f"You must first use `/{SET_COMMAND}` to configure a channel to send updates to.")
         return
     try:
         artist = get_artist_by_name(str(artist_name_or_id))
     except InvalidArtistException:
-        await ctx.send("Artist %s not found" % artist_name_or_id)
+        await message.edit(content="Artist %s not found" % artist_name_or_id)
         return
     artist_in_db = db.get_artist_from_db(artist.name)
     if artist_in_db is not None:
         role = ctx.guild.get_role(int(artist_in_db.role_id))
-        await ctx.send('This server is already following %s! We\'ve assigned you the corresponding role.' % artist_in_db.name)
+        await message.edit(content='This server is already following %s! We\'ve assigned '
+                                   'you the corresponding role.' % artist_in_db.name)
     else:
         role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
         artist.role_id = role.id
         artist.guild_id = ctx.guild.id
         db.add_artist_to_db(artist)
-        message = await ctx.send("<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
-                                 % (artist.role_id, artist.name))
+        await message.edit(
+            content="<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
+                    % (artist.role_id, artist.name))
         await add_role_reactions_to_message(message)
     await ctx.author.add_roles(role)
 
@@ -113,15 +117,16 @@ async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
     ]
 )
 async def unfollow_artist(ctx: SlashContext, artist_name: str):
+    message = await ctx.send(f'Attempting to unfollow artist {artist_name}...')
     try:
         artist = db.get_artist_from_db(artist_name)
         db.remove_artist_from_db(artist_name)
         role = ctx.guild.get_role(int(artist.role_id))
         if role is not None:
             await role.delete()
-        await ctx.send('%s has been unfollowed!' % artist_name)
+        await message.edit(content='%s has been unfollowed!' % artist_name)
     except NotFollowingArtistException:
-        await ctx.send('You are not following any artist named %s!' % artist_name)
+        await message.edit(content='You are not following any artist named %s!' % artist_name)
 
 
 @slash.slash(
@@ -129,8 +134,9 @@ async def unfollow_artist(ctx: SlashContext, artist_name: str):
     description="list followed artists",
 )
 async def list_follows(ctx: SlashContext):
+    message = await ctx.send('Attempting to list all followed artists...')
     artists = db.get_all_artists_from_db()
-    await ctx.send("Following Artists: %s" % list(artist.name for artist in artists))
+    await message.edit(content="Following Artists: %s" % list(artist.name for artist in artists))
 
 
 @client.event
@@ -144,7 +150,7 @@ async def on_raw_reaction_add(payload):
     # Make sure this is a reaction to a valid message (one with a role)
     if user != client.user and message.content[1] == '@':
         role_string = message.content.split()[0]
-        role_id = int(role_string[3:len(role_string)-1])
+        role_id = int(role_string[3:len(role_string) - 1])
         role = guild.get_role(role_id=role_id)
         if role is None:
             return
