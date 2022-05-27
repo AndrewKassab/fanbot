@@ -17,6 +17,9 @@ FOLLOW_COMMAND = "musicfollow"
 UNFOLLOW_COMMAND = "musicunfollow"
 LIST_COMMAND = "musiclist"
 
+# Cache for storing channel id for a guild
+guild_to_channel = {}
+
 
 @client.event
 async def on_ready():
@@ -36,7 +39,7 @@ async def do_something():
 async def send_new_releases():
     artists = db.get_all_artists_from_db()
     for artist in artists:
-        channel_id = db.get_music_channel_id_for_guild_id(artist.guild_id)
+        channel_id = get_music_channel_id(artist.guild_id)
         channel = client.get_guild(int(artist.guild_id)).get_channel(int(channel_id))
         # update channel hasn't been set yet
         if channel is None:
@@ -59,6 +62,14 @@ async def send_new_releases():
             await add_role_reactions_to_message(message)
 
 
+def get_music_channel_id(guild_id):
+    if guild_id in guild_to_channel:
+        return guild_to_channel[guild_id]
+    else:
+        guild_to_channel[guild_id] = db.get_music_channel_id_for_guild_id(guild_id)
+        return guild_to_channel[guild_id]
+
+
 @slash.slash(
     name=SET_COMMAND,
     description="Use in the desired channel to receive updates",
@@ -72,6 +83,7 @@ async def set_update_channel(ctx: SlashContext):
     else:
         db.update_guild_channel_id(ctx.guild_id, ctx.channel_id)
         await message.edit(content="Current channel successfully configured for updates.")
+    guild_to_channel[ctx.guild_id] = ctx.channel_id
 
 
 @slash.slash(
