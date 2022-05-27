@@ -21,19 +21,28 @@ LIST_COMMAND = "musiclist"
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-    send_new_releases.start()
+    # send_new_releases.start()
+    do_something.start()
+
+
+@tasks.loop(minutes=2)
+async def do_something():
+    while True:
+        continue
 
 
 # You could optimize this by avoiding spotify calls if we've already updated for this artist within this day
-@tasks.loop(minutes=1)
+# @tasks.loop(minutes=1)
 async def send_new_releases():
     artists = db.get_all_artists_from_db()
     for artist in artists:
         channel_id = db.get_music_channel_id_for_guild_id(artist.guild_id)
         channel = client.get_guild(int(artist.guild_id)).get_channel(int(channel_id))
+        # update channel hasn't been set yet
         if channel is None:
             continue
         artist_role = channel.guild.get_role(int(artist.role_id))
+        # server has manually deleted this artist from their roles
         if artist_role is None:
             db.remove_artist_from_db(artist.name)
             continue
@@ -59,7 +68,7 @@ async def set_update_channel(ctx: SlashContext):
     if not db.is_guild_in_db(ctx.guild_id):
         db.add_guild_to_db(ctx.guild_id, ctx.channel_id)
         await message.edit(content="Current channel successfully configured for updates. "
-                       f"You may begin following artists using `/{FOLLOW_COMMAND}`.")
+                                   f"You may begin following artists using `/{FOLLOW_COMMAND}`.")
     else:
         db.update_guild_channel_id(ctx.guild_id, ctx.channel_id)
         await message.edit(content="Current channel successfully configured for updates.")
