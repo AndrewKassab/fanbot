@@ -3,7 +3,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import os
 from datetime import datetime, timedelta
 from spotipy.exceptions import SpotifyException
-from db.database import Artist
+from utils.database import Artist
 
 
 class InvalidArtistException(Exception):
