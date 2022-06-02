@@ -114,13 +114,13 @@ class MusicDatabase:
     def is_guild_in_db(self, guild_id):
         return guild_id in self.guilds.keys()
 
-    def add_guild(self, guild_id, channel_id):
+    def add_guild(self, guild):
         con = self.get_connection()
         cur = con.cursor()
-        cur.execute(f"INSERT INTO Guilds VALUES({guild_id},{channel_id})")
+        cur.execute(f"INSERT INTO Guilds VALUES({guild.id},{guild.music_channel_id})")
         con.commit()
         con.close()
-        self.guilds[guild_id] = Guild(guild_id, channel_id)
+        self.guilds[guild.id] = guild
 
     def update_guild_channel_id(self, guild_id, new_channel_id):
         con = self.get_connection()

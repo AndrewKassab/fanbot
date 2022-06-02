@@ -1,5 +1,5 @@
 from utils.spotify import *
-from utils.database import MusicDatabase, NotFollowingArtistException
+from utils.database import MusicDatabase, NotFollowingArtistException, Guild
 from discord.ext import tasks, commands
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_option
@@ -71,7 +71,7 @@ async def send_new_releases():
 async def set_update_channel(ctx: SlashContext):
     message = await ctx.send("Attempting to configure current channel for updates...")
     if not db.is_guild_in_db(ctx.guild_id):
-        db.add_guild(ctx.guild_id, ctx.channel_id)
+        db.add_guild(Guild(ctx.guild_id, ctx.channel_id))
         await message.edit(content="Current channel successfully configured for updates. "
                                    f"You may begin following artists using `/{FOLLOW_COMMAND}`.")
     else:
