@@ -85,7 +85,7 @@ class MusicDatabase:
         return artists_dict
 
     def get_artist_for_guild(self, artist_id, guild_id):
-        return self.artists[artist_id][guild_id]
+        return self.artists[artist_id].get(guild_id)
 
     def set_latest_notified_release_for_artist_in_guild(self, new_release_id, artist_id, guild_id):
         con = self.get_connection()
@@ -109,7 +109,7 @@ class MusicDatabase:
         return guilds_dict
 
     def get_music_channel_id_for_guild_id(self, guild_id):
-        return self.guilds[guild_id].music_channel_id
+        return self.guilds.get(guild_id).music_channel_id
 
     def is_guild_in_db(self, guild_id):
         return guild_id in self.guilds.keys()
