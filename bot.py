@@ -1,5 +1,4 @@
 from utils.spotify import *
-from utils.cache import *
 from utils.database import MusicDatabase, NotFollowingArtistException
 from discord.ext import tasks, commands
 from discord_slash import SlashCommand, SlashContext
@@ -48,7 +47,7 @@ async def send_new_releases():
         artist_role = channel.guild.get_role(int(artist.role_id))
         # server has manually deleted this artist from their roles
         if artist_role is None:
-            db.remove_artist_from_db(artist)
+            db.remove_artist(artist)
             continue
         newest_release = get_newest_release_by_artist_id(artist.id)
         if newest_release is None:
@@ -72,7 +71,7 @@ async def send_new_releases():
 async def set_update_channel(ctx: SlashContext):
     message = await ctx.send("Attempting to configure current channel for updates...")
     if not db.is_guild_in_db(ctx.guild_id):
-        db.add_guild_to_db(ctx.guild_id, ctx.channel_id)
+        db.add_guild(ctx.guild_id, ctx.channel_id)
         await message.edit(content="Current channel successfully configured for updates. "
                                    f"You may begin following artists using `/{FOLLOW_COMMAND}`.")
     else:
@@ -112,7 +111,7 @@ async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
         role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
         artist.role_id = role.id
         artist.id = ctx.guild.id
-        db.add_artist_to_db(artist)
+        db.add_artist(artist)
         await message.edit(
             content="<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
                     % (artist.role_id, artist.name))
@@ -136,7 +135,7 @@ async def unfollow_artist(ctx: SlashContext, artist_name: str):
     message = await ctx.send(f'Attempting to unfollow artist {artist_name}...')
     try:
         artist = db.get_artist_for_guild(artist_name, ctx.guild_id)
-        db.remove_artist_from_db(artist)
+        db.remove_artist(artist)
         role = ctx.guild.get_role(int(artist.role_id))
         if role is not None:
             await role.delete()

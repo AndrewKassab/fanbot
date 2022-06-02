@@ -48,7 +48,7 @@ class MusicDatabase:
             database='musicbot',
         )
 
-    def add_artist_to_db(self, artist):
+    def add_artist(self, artist):
         con = self.get_connection()
         cur = con.cursor()
         try:
@@ -60,7 +60,7 @@ class MusicDatabase:
         con.commit()
         con.close()
 
-    def remove_artist_from_db(self, artist):
+    def remove_artist(self, artist):
         con = self.get_connection()
         cur = con.cursor()
         cur.execute("SELECT * FROM Artists WHERE artist_id='%s' and guild_id='%s'" % (artist.id, artist.guild_id))
@@ -72,8 +72,6 @@ class MusicDatabase:
         con.close()
 
     def get_all_artists(self):
-        if self.artists is not None:
-            return self.artists
         con = self.get_connection()
         cur = con.cursor()
         cur.execute("SELECT * FROM Artists")
@@ -87,18 +85,7 @@ class MusicDatabase:
         return artists_dict
 
     def get_artist_for_guild(self, artist_id, guild_id):
-        if self.artists is not None:
-            return self.artists[artist_id][guild_id]
-        con = self.get_connection()
-        cur = con.cursor()
-        cur.execute("SELECT * FROM Artists WHERE artist_id='%s' AND guild_id='%s'" % (artist_id, guild_id))
-        rows = cur.fetchall()
-        if len(rows) <= 0:
-            return None
-        row = rows[0]
-        artist = Artist(name=row[1], artist_id=row[0], role_id=row[2], latest_release_id=row[3], guild_id=row[4])
-        con.close()
-        return artist
+        return self.artists[artist_id][guild_id]
 
     def set_latest_notified_release_for_artist_in_guild(self, new_release_id, artist_id, guild_id):
         con = self.get_connection()
@@ -110,8 +97,6 @@ class MusicDatabase:
         con.close()
 
     def get_all_guilds(self):
-        if self.guilds is not None:
-            return self.guilds
         con = self.get_connection()
         cur = con.cursor()
         cur.execute("SELECT * FROM Guilds")
@@ -124,29 +109,12 @@ class MusicDatabase:
         return guilds_dict
 
     def get_music_channel_id_for_guild_id(self, guild_id):
-        if self.guilds is not None:
-            return self.guilds[guild_id].music_channel_id
-        con = self.get_connection()
-        cur = con.cursor()
-        cur.execute(f"SELECT channel_id FROM Guilds WHERE guild_id='{guild_id}'")
-        channel_id = cur.fetchall()[0][0]
-        con.close()
-        return channel_id
+        return self.guilds[guild_id].music_channel_id
 
     def is_guild_in_db(self, guild_id):
-        if self.guilds is not None:
-            return guild_id in self.guilds
-        con = self.get_connection()
-        cur = con.cursor()
-        cur.execute(f"SELECT * FROM Guilds WHERE guild_id='{guild_id}'")
-        rows = cur.fetchall()
-        if len(rows) <= 0:
-            con.close()
-            return False
-        con.close()
-        return True
+        return guild_id in self.guilds
 
-    def add_guild_to_db(self, guild_id, channel_id):
+    def add_guild(self, guild_id, channel_id):
         con = self.get_connection()
         cur = con.cursor()
         cur.execute(f"INSERT INTO Guilds VALUES({guild_id},{channel_id})")
