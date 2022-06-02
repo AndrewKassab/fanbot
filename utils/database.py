@@ -1,5 +1,6 @@
 import os
 import mysql.connector
+from collections import defaultdict
 
 
 class Artist:
@@ -36,16 +37,8 @@ class MusicDatabase:
     def __init__(self):
         self.db = mysql.connector
         # Populate cache
-        self.guilds = {}
-        all_guilds = self.get_all_guilds()
-        for guild in all_guilds:
-            self.guilds[guild.id] = guild
-        self.artists = {}
-        all_artists = self.get_all_artists()
-        for artist in all_artists:
-            if self.artists[artist.id] is None:
-                self.artists[artist.id] = {}
-            self.artists[artist.id][artist.guild_id] = artist
+        self.guilds = self.get_all_guilds()
+        self.artists = self.get_all_artists()
 
     def get_connection(self):
         return self.db.connect(
@@ -60,36 +53,45 @@ class MusicDatabase:
         cur = con.cursor()
         try:
             cur.execute("INSERT INTO Artists(artist_id, name, role_id, guild_id) VALUES('%s','%s','%s','%s')"
-                        % (artist.id, artist.name, artist.role_id, artist.id))
+                        % (artist.id, artist.name, artist.role_id, artist.guild_id))
+            self.artists[artist.id][artist.guild_id] = artist
         except self.db.IntegrityError:
             raise ArtistAlreadyExistsException()
         con.commit()
         con.close()
 
-    def remove_artist_from_db(self, artist_name):
+    def remove_artist_from_db(self, artist):
         con = self.get_connection()
         cur = con.cursor()
-        cur.execute("SELECT * FROM Artists WHERE UPPER(name)='%s'" % str.upper(artist_name))
+        cur.execute("SELECT * FROM Artists WHERE artist_id='%s' and guild_id='%s'" % (artist.id, artist.guild_id))
         if len(cur.fetchall()) <= 0:
             raise NotFollowingArtistException
-        cur.execute("DELETE FROM Artists WHERE UPPER(name)='%s'" % str.upper(artist_name))
+        cur.execute("DELETE FROM Artists WHERE artist_id='%s' and guild_id='%s'" % (artist.id, artist.guild_id))
+        self.artists[artist.id][artist.guild_id] = None
         con.commit()
         con.close()
 
     def get_all_artists(self):
+        if self.artists is not None:
+            return self.artists
         con = self.get_connection()
         cur = con.cursor()
         cur.execute("SELECT * FROM Artists")
         rows = cur.fetchall()
         all_artists = [Artist(name=row[1], artist_id=row[0], role_id=row[2], latest_release_id=row[3],
                               guild_id=row[4]) for row in rows]
+        artists_dict = defaultdict(dict)
+        for artist in all_artists:
+            artists_dict[artist.id][artist.guild_id] = artist
         con.close()
-        return all_artists
+        return artists_dict
 
-    def get_artist_by_name(self, artist_name):
+    def get_artist_for_guild(self, artist_id, guild_id):
+        if self.artists is not None:
+            return self.artists[artist_id][guild_id]
         con = self.get_connection()
         cur = con.cursor()
-        cur.execute("SELECT * FROM Artists WHERE UPPER(name)='%s'" % str.upper(artist_name))
+        cur.execute("SELECT * FROM Artists WHERE artist_id='%s' AND guild_id='%s'" % (artist_id, guild_id))
         rows = cur.fetchall()
         if len(rows) <= 0:
             return None
@@ -104,20 +106,25 @@ class MusicDatabase:
         cur.execute("UPDATE Artists SET latest_release_id='%s' WHERE "
                     "artist_id='%s' AND guild_id='%s'" % (new_release_id, artist_id, guild_id))
         con.commit()
-        self.artists[artist_id][guild_id].latest_release_id
+        self.artists[artist_id][guild_id].latest_release_id = new_release_id
         con.close()
 
     def get_all_guilds(self):
+        if self.guilds is not None:
+            return self.guilds
         con = self.get_connection()
         cur = con.cursor()
         cur.execute("SELECT * FROM Guilds")
         rows = cur.fetchall()
         all_guilds = [Guild(guild_id=row[0], music_channel_id=row[1]) for row in rows]
+        guilds_dict = {}
+        for guild in all_guilds:
+            guilds_dict[guild.id] = guild
         con.close()
-        return all_guilds
+        return guilds_dict
 
     def get_music_channel_id_for_guild_id(self, guild_id):
-        if guild_id in self.guilds:
+        if self.guilds is not None:
             return self.guilds[guild_id].music_channel_id
         con = self.get_connection()
         cur = con.cursor()
@@ -127,12 +134,16 @@ class MusicDatabase:
         return channel_id
 
     def is_guild_in_db(self, guild_id):
+        if self.guilds is not None:
+            return guild_id in self.guilds
         con = self.get_connection()
         cur = con.cursor()
         cur.execute(f"SELECT * FROM Guilds WHERE guild_id='{guild_id}'")
         rows = cur.fetchall()
         if len(rows) <= 0:
+            con.close()
             return False
+        con.close()
         return True
 
     def add_guild_to_db(self, guild_id, channel_id):
@@ -141,6 +152,7 @@ class MusicDatabase:
         cur.execute(f"INSERT INTO Guilds VALUES({guild_id},{channel_id})")
         con.commit()
         con.close()
+        self.guilds[guild_id] = Guild(guild_id, channel_id)
 
     def update_guild_channel_id(self, guild_id, new_channel_id):
         con = self.get_connection()
@@ -148,4 +160,5 @@ class MusicDatabase:
         cur.execute(f"UPDATE Guilds SET channel_id={new_channel_id} WHERE guild_id='{guild_id}'")
         con.commit()
         con.close()
+        self.guilds[guild_id].music_channel_id = new_channel_id
 

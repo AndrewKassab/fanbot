@@ -48,7 +48,7 @@ async def send_new_releases():
         artist_role = channel.guild.get_role(int(artist.role_id))
         # server has manually deleted this artist from their roles
         if artist_role is None:
-            db.remove_artist_from_db(artist.name)
+            db.remove_artist_from_db(artist)
             continue
         newest_release = get_newest_release_by_artist_id(artist.id)
         if newest_release is None:
@@ -103,7 +103,7 @@ async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
     except InvalidArtistException:
         await message.edit(content="Artist %s not found" % artist_name_or_id)
         return
-    artist_in_db = db.get_artist_by_name(artist.name)
+    artist_in_db = db.get_artist_for_guild(artist.id, ctx.guild_id)
     if artist_in_db is not None:
         role = ctx.guild.get_role(int(artist_in_db.role_id))
         await message.edit(content='This server is already following %s! We\'ve assigned '
@@ -135,8 +135,8 @@ async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
 async def unfollow_artist(ctx: SlashContext, artist_name: str):
     message = await ctx.send(f'Attempting to unfollow artist {artist_name}...')
     try:
-        artist = db.get_artist_by_name(artist_name)
-        db.remove_artist_from_db(artist_name)
+        artist = db.get_artist_for_guild(artist_name, ctx.guild_id)
+        db.remove_artist_from_db(artist)
         role = ctx.guild.get_role(int(artist.role_id))
         if role is not None:
             await role.delete()
