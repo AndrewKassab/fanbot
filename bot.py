@@ -25,7 +25,7 @@ guild_to_channel = {}
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
     # send_new_releases.start()
-    do_something.start()
+    # do_something.start()
 
 
 @tasks.loop(minutes=2)

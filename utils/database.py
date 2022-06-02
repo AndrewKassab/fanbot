@@ -112,7 +112,7 @@ class MusicDatabase:
         return self.guilds[guild_id].music_channel_id
 
     def is_guild_in_db(self, guild_id):
-        return guild_id in self.guilds
+        return guild_id in self.guilds.keys()
 
     def add_guild(self, guild_id, channel_id):
         con = self.get_connection()
