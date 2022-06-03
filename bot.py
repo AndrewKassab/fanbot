@@ -17,9 +17,6 @@ FOLLOW_COMMAND = "musicfollow"
 UNFOLLOW_COMMAND = "musicunfollow"
 LIST_COMMAND = "musiclist"
 
-# Cache for storing channel id for a guild
-guild_to_channel = {}
-
 
 @client.event
 async def on_ready():
@@ -77,7 +74,6 @@ async def set_update_channel(ctx: SlashContext):
     else:
         db.update_guild_channel_id(ctx.guild_id, ctx.channel_id)
         await message.edit(content="Current channel successfully configured for updates.")
-    guild_to_channel[ctx.guild_id] = ctx.channel_id
 
 
 @slash.slash(
@@ -85,22 +81,23 @@ async def set_update_channel(ctx: SlashContext):
     description="follow artist",
     options=[
         create_option(
-            name="artist_name_or_id",
-            description="The name of the artist or their id",
+            name="artist_link",
+            description="The artist's spotify link",
             option_type=3,
             required=True
         )
     ]
 )
-async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
-    message = await ctx.send(f'Attempting to follow artist {artist_name_or_id}...')
+async def follow_artist(ctx: SlashContext, artist_link: str):
+    message = await ctx.send('Attempting to follow artist...')
     if not db.is_guild_in_db(ctx.guild_id):
         await message.edit(content=f"You must first use `/{SET_COMMAND}` to configure a channel to send updates to.")
         return
     try:
-        artist = get_artist_by_name(str(artist_name_or_id))
+        artist_id = extract_artist_id(artist_link)
+        artist = get_artist_by_id(artist_id)
     except InvalidArtistException:
-        await message.edit(content="Artist %s not found" % artist_name_or_id)
+        await message.edit(content="Artist not found, please make sure you are providing a valid spotify artist url")
         return
     artist_in_db = db.get_artist_for_guild(artist.id, ctx.guild_id)
     if artist_in_db is not None:
@@ -110,7 +107,7 @@ async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
     else:
         role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
         artist.role_id = role.id
-        artist.id = ctx.guild.id
+        artist.guild_id = ctx.guild.id
         db.add_artist(artist)
         await message.edit(
             content="<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
@@ -133,15 +130,15 @@ async def follow_artist(ctx: SlashContext, artist_name_or_id: str):
 )
 async def unfollow_artist(ctx: SlashContext, artist_name: str):
     message = await ctx.send(f'Attempting to unfollow artist {artist_name}...')
-    try:
-        artist = db.get_artist_for_guild(artist_name, ctx.guild_id)
-        db.remove_artist(artist)
-        role = ctx.guild.get_role(int(artist.role_id))
-        if role is not None:
-            await role.delete()
-        await message.edit(content='%s has been unfollowed!' % artist_name)
-    except NotFollowingArtistException:
+    artist = db.get_artist_by_name_for_guild(artist_name, ctx.guild_id)
+    if artist is None:
         await message.edit(content='You are not following any artist named %s!' % artist_name)
+        return
+    db.remove_artist(artist)
+    role = ctx.guild.get_role(int(artist.role_id))
+    if role is not None:
+        await role.delete()
+    await message.edit(content='%s has been unfollowed!' % artist_name)
 
 
 @slash.slash(
@@ -151,7 +148,7 @@ async def unfollow_artist(ctx: SlashContext, artist_name: str):
 async def list_follows(ctx: SlashContext):
     message = await ctx.send('Attempting to list all followed artists...')
     artists = db.get_all_artists()
-    await message.edit(content="Following Artists: %s" % list(artist.name for artist in artists))
+    await message.edit(content="Following Artists: %s" % list(artist.name for artist in artists[ctx.guild_id].values()))
 
 
 @client.event

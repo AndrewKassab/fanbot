@@ -8,10 +8,10 @@ class TestSpotify(unittest.TestCase):
     valid_artist_true_id = '3dz0NnIZhtKKeXZxLOxCam'
 
     def test_get_artist_id_invalid(self):
-        self.assertRaises(InvalidArtistException, get_artist_by_name, "invalid artist name")
+        self.assertRaises(InvalidArtistException, get_artist_by_id, "invalid artist name")
 
     def test_get_artist_id_valid(self):
-        artist = get_artist_by_name(self.valid_artist_name)
+        artist = get_artist_by_id(self.valid_artist_name)
         self.assertEqual(self.valid_artist_true_id, artist.id)
 
     def test_get_artist_newest_release(self):

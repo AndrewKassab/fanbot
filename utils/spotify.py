@@ -18,18 +18,12 @@ client_secret = os.getenv('MUSIC_BOT_CLIENT_SECRET')
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
 
 
-def get_artist_by_name(artist_name_or_id):
-    results = sp.search(q='artist:' + artist_name_or_id, type='artist')
-    items = results['artists']['items']
-    if len(items) > 0:
-        artist = items[0]
-        return Artist(artist['name'], artist['id'])
-    else:
-        try:
-            result = sp.artist(artist_name_or_id)
-            return Artist(result['name'], result['id'])
-        except SpotifyException:
-            raise InvalidArtistException
+def get_artist_by_id(artist_name_or_id):
+    try:
+        result = sp.artist(artist_name_or_id)
+        return Artist(artist_id=result['id'], name=result['name'])
+    except SpotifyException:
+        raise InvalidArtistException
 
 
 # New means current day
@@ -72,4 +66,12 @@ def filter_releases_by_date(albums):
         if item['release_date'] == today_string or item['release_date'] == tomorrow_string:
             new_items.append(item)
     return new_items
+
+
+def extract_artist_id(artist_link):
+    if len(artist_link) != 74:
+        raise InvalidArtistException
+    return artist_link[32:54]
+
+
 
