@@ -84,14 +84,6 @@ class MusicDatabase:
     def get_artist_for_guild(self, artist_id, guild_id):
         return self.guild_to_artists[guild_id].get(artist_id)
 
-    # TODO: Improve efficiency
-    def get_artist_by_name_for_guild(self, artist_name, guild_id):
-        guilds_artists = self.guild_to_artists[guild_id]
-        for artist in guilds_artists.values():
-            if artist.name == artist_name:
-                return artist
-        return None
-
     def set_latest_notified_release_for_artist_in_guild(self, new_release_id, artist_id, guild_id):
         con = self.get_connection()
         cur = con.cursor()
