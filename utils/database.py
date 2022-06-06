@@ -26,12 +26,6 @@ class ArtistAlreadyExistsException(Exception):
         super().__init__("Already following artist")
 
 
-class NotFollowingArtistException(Exception):
-
-    def __init__(self):
-        super().__init__("Not following artist")
-
-
 class MusicDatabase:
 
     def __init__(self):

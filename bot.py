@@ -1,5 +1,5 @@
 from utils.spotify import *
-from utils.database import MusicDatabase, NotFollowingArtistException, Guild
+from utils.database import MusicDatabase, Guild
 from discord.ext import tasks, commands
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_option
