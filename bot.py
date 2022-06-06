@@ -117,31 +117,6 @@ async def follow_artist(ctx: SlashContext, artist_link: str):
 
 
 @slash.slash(
-    name=UNFOLLOW_COMMAND,
-    description="unfollow artist",
-    options=[
-        create_option(
-            name="artist_name",
-            description="The name of the artist",
-            option_type=3,
-            required=True
-        )
-    ]
-)
-async def unfollow_artist(ctx: SlashContext, artist_name: str):
-    message = await ctx.send(f'Attempting to unfollow artist {artist_name}...')
-    artist = db.get_artist_by_name_for_guild(artist_name, ctx.guild_id)
-    if artist is None:
-        await message.edit(content='You are not following any artist named %s!' % artist_name)
-        return
-    db.remove_artist(artist)
-    role = ctx.guild.get_role(int(artist.role_id))
-    if role is not None:
-        await role.delete()
-    await message.edit(content='%s has been unfollowed!' % artist_name)
-
-
-@slash.slash(
     name=LIST_COMMAND,
     description="list followed artists",
 )
