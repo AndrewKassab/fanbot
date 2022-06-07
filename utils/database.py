@@ -32,7 +32,7 @@ class MusicDatabase:
         self.db = mysql.connector
         # Populate cache
         self.guilds = self.get_all_guilds()
-        self.guild_to_artists = self.get_all_artists()
+        self.guild_to_artists = self.get_all_guilds_to_artists()
 
     def get_connection(self):
         return self.db.connect(
@@ -41,6 +41,31 @@ class MusicDatabase:
             password=os.environ.get('MUSIC_BOT_DB_PASSWORD'),
             database='musicbot',
         )
+
+    def get_all_guilds(self):
+        con = self.get_connection()
+        cur = con.cursor()
+        cur.execute("SELECT * FROM Guilds")
+        rows = cur.fetchall()
+        all_guilds = [Guild(guild_id=row[0], music_channel_id=row[1]) for row in rows]
+        guilds_dict = {}
+        for guild in all_guilds:
+            guilds_dict[guild.id] = guild
+        con.close()
+        return guilds_dict
+
+    def get_all_guilds_to_artists(self):
+        con = self.get_connection()
+        cur = con.cursor()
+        cur.execute("SELECT * FROM Artists")
+        rows = cur.fetchall()
+        all_artists = [Artist(name=row[1], artist_id=row[0], role_id=row[2], latest_release_id=row[3],
+                              guild_id=row[4]) for row in rows]
+        artists_dict = defaultdict(dict)
+        for artist in all_artists:
+            artists_dict[artist.guild_id][artist.id] = artist
+        con.close()
+        return artists_dict
 
     def add_artist(self, artist):
         con = self.get_connection()
@@ -63,41 +88,25 @@ class MusicDatabase:
         con.close()
 
     def get_all_artists(self):
-        con = self.get_connection()
-        cur = con.cursor()
-        cur.execute("SELECT * FROM Artists")
-        rows = cur.fetchall()
-        all_artists = [Artist(name=row[1], artist_id=row[0], role_id=row[2], latest_release_id=row[3],
-                              guild_id=row[4]) for row in rows]
-        artists_dict = defaultdict(dict)
-        for artist in all_artists:
-            artists_dict[artist.guild_id][artist.id] = artist
-        con.close()
-        return artists_dict
+        artists = []
+        for artist_dict in self.guild_to_artists.values():
+            artists.extend(artist_dict.values())
+        return artists
+
+    def get_all_artists_for_guild(self, guild_id):
+        return self.guild_to_artists[guild_id]
 
     def get_artist_for_guild(self, artist_id, guild_id):
         return self.guild_to_artists[guild_id].get(artist_id)
 
-    def set_latest_notified_release_for_artist_in_guild(self, new_release_id, artist_id, guild_id):
+    def set_latest_notified_release_for_artist(self, artist, new_release_id):
         con = self.get_connection()
         cur = con.cursor()
         cur.execute("UPDATE Artists SET latest_release_id='%s' WHERE "
-                    "artist_id='%s' AND guild_id='%s'" % (new_release_id, artist_id, guild_id))
+                    "artist_id='%s' AND guild_id='%s'" % (new_release_id, artist.id, artist.guild_id))
         con.commit()
-        self.guild_to_artists[guild_id][artist_id].latest_release_id = new_release_id
+        self.guild_to_artists[artist.guild_id][artist.id].latest_release_id = new_release_id
         con.close()
-
-    def get_all_guilds(self):
-        con = self.get_connection()
-        cur = con.cursor()
-        cur.execute("SELECT * FROM Guilds")
-        rows = cur.fetchall()
-        all_guilds = [Guild(guild_id=row[0], music_channel_id=row[1]) for row in rows]
-        guilds_dict = {}
-        for guild in all_guilds:
-            guilds_dict[guild.id] = guild
-        con.close()
-        return guilds_dict
 
     def get_music_channel_id_for_guild_id(self, guild_id):
         return self.guilds.get(guild_id).music_channel_id

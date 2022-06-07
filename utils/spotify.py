@@ -2,8 +2,8 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import os
 from datetime import datetime, timedelta
-from spotipy.exceptions import SpotifyException
 from utils.database import Artist
+import spotify
 
 
 class InvalidArtistException(Exception):
@@ -15,44 +15,45 @@ class InvalidArtistException(Exception):
 client_id = os.getenv('MUSIC_BOT_CLIENT_ID')
 client_secret = os.getenv('MUSIC_BOT_CLIENT_SECRET')
 
-sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
+sp = spotify.Client(client_id, client_secret)
 
 
-def get_artist_by_id(artist_name_or_id):
+async def get_artist_by_id(artist_id):
     try:
-        result = sp.artist(artist_name_or_id)
-        return Artist(artist_id=result['id'], name=result['name'])
-    except SpotifyException:
+        result = await sp.get_artist(artist_id)
+        return Artist(artist_id=result.id, name=result.name)
+    except spotify.errors.HTTPException:
         raise InvalidArtistException
 
 
 # New means current day
-def get_newest_release_by_artist_id(artist_id):
+async def get_newest_release_by_artist_id(artist_id):
     possible_new_releases = []
     artist_albums = []
     offset = 0
+    artist = await sp.get_artist(artist_id)
     while (len(artist_albums) != 0) or (offset == 0):
-        artist_albums = sp.artist_albums(artist_id, limit=50, offset=offset)['items']
+        artist_albums = await artist.get_albums(limit=50, offset=offset)
         possible_new_releases.extend(filter_releases_by_date(artist_albums))
         offset += 50
     # Sometimes utils creates 'albums' featuring multiple artists, we don't want to share these
     actual_new_releases = []
     for release in possible_new_releases:
-        if release['artists'][0]['name'] != 'Various Artists':
+        if release.artists[0].name != 'Various Artists':
             actual_new_releases.append(release)
     if len(actual_new_releases) > 0:
-        return get_ideal_newest_release(actual_new_releases)
+        return await get_ideal_newest_release(actual_new_releases)
     return None
 
 
 # If there is an album, just return that instead of all the songs in it, otherwise just get a song
-def get_ideal_newest_release(releases):
+async def get_ideal_newest_release(releases):
     for release in releases:
-        if release['type'] == 'album' and release['album_type'] != 'single':
+        if release.type != 'single':
             return release
     release = releases[0]
-    if release['album_type'] == 'single':
-        tracks = sp.album_tracks(releases[0]['id'])
+    if release.type == 'single':
+        tracks = await release._Album__client.http.album_tracks(release.id)
         release = tracks['items'][0]
     return release
 
@@ -63,15 +64,16 @@ def filter_releases_by_date(albums):
     tomorrow_string = (curr_date + timedelta(days=1)).strftime('%Y-%m-%d')
     new_items = []
     for item in albums:
-        if item['release_date'] == today_string or item['release_date'] == tomorrow_string:
+        if item.release_date == today_string or item.release_date == tomorrow_string:
             new_items.append(item)
     return new_items
 
 
 def extract_artist_id(artist_link):
-    if len(artist_link) != 74:
+    if len(artist_link) < 54:
         raise InvalidArtistException
-    return artist_link[32:54]
+    without_url = artist_link[32:]
+    return without_url.split('?')[0]
 
 
 

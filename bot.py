@@ -3,6 +3,7 @@ from utils.database import MusicDatabase, Guild
 from discord.ext import tasks, commands
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_option
+from threading import Thread
 
 client = commands.Bot(command_prefix="/")
 slash = SlashCommand(client, sync_commands=True)
@@ -21,23 +22,16 @@ LIST_COMMAND = "musiclist"
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-    # send_new_releases.start()
-    # do_something.start()
-
-
-@tasks.loop(minutes=2)
-async def do_something():
-    while True:
-        continue
+    send_new_releases.start()
 
 
 # You could optimize this by avoiding spotify calls if we've already updated for this artist within this day
-# @tasks.loop(minutes=1)
+@tasks.loop(seconds=30)
 async def send_new_releases():
     artists = db.get_all_artists()
     for artist in artists:
-        channel_id = db.get_music_channel_id_for_guild_id(artist.id)
-        channel = client.get_guild(int(artist.id)).get_channel(int(channel_id))
+        channel_id = db.get_music_channel_id_for_guild_id(artist.guild_id)
+        channel = client.get_guild(artist.guild_id).get_channel(channel_id)
         # update channel hasn't been set yet
         if channel is None:
             continue
@@ -46,13 +40,13 @@ async def send_new_releases():
         if artist_role is None:
             db.remove_artist(artist)
             continue
-        newest_release = get_newest_release_by_artist_id(artist.id)
+        newest_release = await get_newest_release_by_artist_id(artist.id)
         if newest_release is None:
             continue
         newest_release_id = newest_release['id']
         # If we haven't already notified the channel of this release
         if artist.latest_release_id != newest_release_id:
-            db.set_latest_notified_release_for_artist_in_guild(artist_id=artist.id, new_release_id=newest_release_id)
+            db.set_latest_notified_release_for_artist(artist=artist, new_release_id=newest_release_id)
             release_url = newest_release['external_urls']['spotify']
             message = await channel.send("<@&%s> New Release!\n:white_check_mark:: Assign Role."
                                          ":x:: Remove Role.\n%s" % (artist.role_id, release_url))
@@ -78,11 +72,11 @@ async def set_update_channel(ctx: SlashContext):
 
 @slash.slash(
     name=FOLLOW_COMMAND,
-    description="follow artist",
+    description="follow a spotify artist by providing their spotify profile link",
     options=[
         create_option(
             name="artist_link",
-            description="The artist's spotify link",
+            description="The artist's spotify share link",
             option_type=3,
             required=True
         )
@@ -95,7 +89,7 @@ async def follow_artist(ctx: SlashContext, artist_link: str):
         return
     try:
         artist_id = extract_artist_id(artist_link)
-        artist = get_artist_by_id(artist_id)
+        artist = await get_artist_by_id(artist_id)
     except InvalidArtistException:
         await message.edit(content="Artist not found, please make sure you are providing a valid spotify artist url")
         return
@@ -122,8 +116,8 @@ async def follow_artist(ctx: SlashContext, artist_link: str):
 )
 async def list_follows(ctx: SlashContext):
     message = await ctx.send('Attempting to list all followed artists...')
-    artists = db.get_all_artists()
-    await message.edit(content="Following Artists: %s" % list(artist.name for artist in artists[ctx.guild_id].values()))
+    artists = db.get_all_artists_for_guild(guild_id=ctx.guild_id)
+    await message.edit(content="Following Artists: %s" % list(artist.name for artist in artists.values()))
 
 
 @client.event
