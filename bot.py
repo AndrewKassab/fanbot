@@ -3,7 +3,6 @@ from utils.database import MusicDatabase, Guild
 from discord.ext import tasks, commands
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_option
-from threading import Thread
 
 client = commands.Bot(command_prefix="/")
 slash = SlashCommand(client, sync_commands=True)
