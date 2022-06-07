@@ -1,5 +1,3 @@
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
 import os
 from datetime import datetime, timedelta
 from utils.database import Artist
