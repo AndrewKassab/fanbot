@@ -99,13 +99,15 @@ class MusicDatabase:
     def get_artist_for_guild(self, artist_id, guild_id):
         return self.guild_to_artists[guild_id].get(artist_id)
 
-    def set_latest_notified_release_for_artist(self, artist, new_release_id):
+    def set_latest_notified_release_for_artists(self, artists, new_release_id):
         con = self.get_connection()
         cur = con.cursor()
-        cur.execute("UPDATE Artists SET latest_release_id='%s' WHERE "
-                    "artist_id='%s' AND guild_id='%s'" % (new_release_id, artist.id, artist.guild_id))
+        for artist in artists:
+            cur.execute("UPDATE Artists SET latest_release_id='%s' WHERE "
+                        "artist_id='%s' AND guild_id='%s'" % (new_release_id, artist.id, artist.guild_id))
         con.commit()
-        self.guild_to_artists[artist.guild_id][artist.id].latest_release_id = new_release_id
+        for artist in artists:
+            self.guild_to_artists[artist.guild_id][artist.id].latest_release_id = new_release_id
         con.close()
 
     def get_music_channel_id_for_guild_id(self, guild_id):

@@ -48,7 +48,7 @@ async def get_newest_release_by_artist_id(artist_id):
 async def get_ideal_newest_release(releases):
     for release in releases:
         if release.type != 'single':
-            return release
+            return release.__dict__
     release = releases[0]
     if release.type == 'single':
         tracks = await release._Album__client.http.album_tracks(release.id)

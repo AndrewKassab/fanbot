@@ -25,33 +25,48 @@ async def on_ready():
 
 
 # You could optimize this by avoiding spotify calls if we've already updated for this artist within this day
-@tasks.loop(seconds=30)
+@tasks.loop(minutes=1)
 async def send_new_releases():
-    artists = db.get_all_artists()
-    for artist in artists:
-        channel_id = db.get_music_channel_id_for_guild_id(artist.guild_id)
-        channel = client.get_guild(artist.guild_id).get_channel(channel_id)
-        # update channel hasn't been set yet
+    followed_artists = db.get_all_artists()
+    for followed_artist in followed_artists:
+        channel_id = db.get_music_channel_id_for_guild_id(followed_artist.guild_id)
+        channel = client.get_guild(followed_artist.guild_id).get_channel(channel_id)
+        # update channel hasn't been set yet, or was deleted
         if channel is None:
             continue
-        artist_role = channel.guild.get_role(int(artist.role_id))
+        artist_role = channel.guild.get_role(int(followed_artist.role_id))
+
         # server has manually deleted this artist from their roles
         if artist_role is None:
-            db.remove_artist(artist)
+            db.remove_artist(followed_artist)
             continue
-        newest_release = await get_newest_release_by_artist_id(artist.id)
+
+        newest_release = await get_newest_release_by_artist_id(followed_artist.id)
         if newest_release is None:
             continue
-        newest_release_id = newest_release['id']
-        # If we haven't already notified the channel of this release
-        if artist.latest_release_id != newest_release_id:
-            db.set_latest_notified_release_for_artist(artist=artist, new_release_id=newest_release_id)
-            release_url = newest_release['external_urls']['spotify']
-            message = await channel.send("<@&%s> New Release!\n:white_check_mark:: Assign Role."
-                                         ":x:: Remove Role.\n%s" % (artist.role_id, release_url))
-            await add_role_reactions_to_message(message)
+
+        relevant_artists = []
+        all_newest_release_ids = []
+        curr_guild_artists = db.get_all_artists_for_guild(followed_artist.guild_id)
+        for artist in newest_release['artists']:
+            if artist['id'] in curr_guild_artists.keys():
+                relevant_artists.append(curr_guild_artists[artist['id']])
+                all_newest_release_ids.append(curr_guild_artists[artist['id']].latest_release_id)
+
+        # If we haven't already notified the guild of this release
+        if newest_release['id'] not in all_newest_release_ids:
+            await notify_release(newest_release, relevant_artists, channel)
 
 
+async def notify_release(release, artists, channel):
+    db.set_latest_notified_release_for_artists(artists=artists, new_release_id=release['id'])
+    release_url = release['external_urls']['spotify']
+    message_text = ""
+    for i in range(1, len(artists)):
+        message_text += '<@&%s>, ' % artists[i].role_id
+    message = await channel.send(message_text + "<@&%s> New Release!\n:white_check_mark:: Assign Role."
+                                                ":x:: Remove Role.\n%s" % (artists[0].role_id, release_url))
+    await add_role_reactions_to_message(message)
 
 
 @slash.slash(
