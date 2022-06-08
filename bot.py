@@ -59,7 +59,6 @@ async def send_new_releases():
 
 
 async def notify_release(release, artists, channel):
-    db.set_latest_notified_release_for_artists(artists=artists, new_release_id=release['id'])
     release_url = release['external_urls']['spotify']
     message_text = ""
     for i in range(1, len(artists)):
@@ -67,6 +66,7 @@ async def notify_release(release, artists, channel):
     message = await channel.send(message_text + "<@&%s> New Release!\n:white_check_mark:: Assign Role."
                                                 ":x:: Remove Role.\n%s" % (artists[0].role_id, release_url))
     await add_role_reactions_to_message(message)
+    db.set_latest_notified_release_for_artists(artists=artists, new_release_id=release['id'])
 
 
 @slash.slash(

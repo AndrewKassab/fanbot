@@ -37,7 +37,7 @@ async def get_newest_release_by_artist_id(artist_id):
     # Sometimes utils creates 'albums' featuring multiple artists, we don't want to share these
     actual_new_releases = []
     for release in possible_new_releases:
-        if release.artists[0].name != 'Various Artists':
+        if release.artists[0].name != 'Various Artists' and any(x.name == artist.name for x in release.artists):
             actual_new_releases.append(release)
     if len(actual_new_releases) > 0:
         return await get_ideal_newest_release(actual_new_releases)
