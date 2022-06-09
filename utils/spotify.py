@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from utils.database import Artist
 import spotify
 
@@ -48,6 +48,8 @@ async def get_newest_release_by_artist_id(artist_id):
 async def get_ideal_newest_release(releases):
     for release in releases:
         if release.type != 'single':
+            for i in range(len(release.artists)):
+                release.artists[i] = release.artists[i].__dict__
             return release.__dict__
     release = releases[0]
     if release.type == 'single':
@@ -62,7 +64,9 @@ def filter_releases_by_date(albums):
     tomorrow_string = (curr_date + timedelta(days=1)).strftime('%Y-%m-%d')
     new_items = []
     for item in albums:
-        if item.release_date == today_string or item.release_date == tomorrow_string:
+        # Making sure the song has already released (with respect to US)
+        if item.release_date == today_string or (item.release_date == tomorrow_string and
+                                                 datetime.utcnow().time() >= time(21, 0)):
             new_items.append(item)
     return new_items
 

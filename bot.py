@@ -59,7 +59,7 @@ async def send_new_releases():
 
 
 async def notify_release(release, artists, channel):
-    release_url = release['external_urls']['spotify']
+    release_url = release['url'] if 'url' in release.keys() else release['external_urls']['spotify']
     message_text = ""
     for i in range(1, len(artists)):
         message_text += '<@&%s>, ' % artists[i].role_id
