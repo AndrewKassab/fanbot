@@ -44,6 +44,19 @@ async def get_newest_release_by_artist_id(artist_id):
     return None
 
 
+def filter_releases_by_date(albums):
+    curr_date = datetime.today()
+    today_string = curr_date.strftime('%Y-%m-%d')
+    tomorrow_string = (curr_date + timedelta(days=1)).strftime('%Y-%m-%d')
+    new_items = []
+    for item in albums:
+        # Making sure the song has already released (with respect to US)
+        if item.release_date == today_string or (item.release_date == tomorrow_string and
+                                                 datetime.now().time() >= time(21, 0)):
+            new_items.append(item)
+    return new_items
+
+
 # If there is an album, just return that instead of all the songs in it, otherwise just get a song
 async def get_ideal_newest_release(releases):
     for release in releases:
@@ -56,19 +69,6 @@ async def get_ideal_newest_release(releases):
         tracks = await release._Album__client.http.album_tracks(release.id)
         release = tracks['items'][0]
     return release
-
-
-def filter_releases_by_date(albums):
-    curr_date = datetime.today()
-    today_string = curr_date.strftime('%Y-%m-%d')
-    tomorrow_string = (curr_date + timedelta(days=1)).strftime('%Y-%m-%d')
-    new_items = []
-    for item in albums:
-        # Making sure the song has already released (with respect to US)
-        if item.release_date == today_string or (item.release_date == tomorrow_string and
-                                                 datetime.utcnow().time() >= time(21, 0)):
-            new_items.append(item)
-    return new_items
 
 
 def extract_artist_id(artist_link):
