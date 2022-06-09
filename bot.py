@@ -143,7 +143,7 @@ async def on_raw_reaction_add(payload):
     member = payload.member
     reaction = payload.emoji
     # Make sure this is a reaction to a valid message (one with a role)
-    if user != client.user and message.content[1] == '@':
+    if user != client.user and len(message.content) > 1 and message.content[1] == '@':
         role_string = message.content.split()[0]
         role_id = int(role_string[3:len(role_string) - 1])
         role = guild.get_role(role_id=role_id)
