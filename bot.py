@@ -25,9 +25,10 @@ async def on_ready():
 
 
 # You could optimize this by avoiding spotify calls if we've already updated for this artist within this day
-@tasks.loop(minutes=1)
+@tasks.loop(minutes=5)
 async def send_new_releases():
     followed_artists = db.get_all_artists()
+    spotify_artists = await get_artists_from_spotify(set(a.id for a in followed_artists))
     for followed_artist in followed_artists:
         channel_id = db.get_music_channel_id_for_guild_id(followed_artist.guild_id)
         channel = client.get_guild(followed_artist.guild_id).get_channel(channel_id)
@@ -41,7 +42,7 @@ async def send_new_releases():
             db.remove_artist(followed_artist)
             continue
 
-        newest_release = await get_newest_release_by_artist_id(followed_artist.id)
+        newest_release = await get_newest_release_by_artist_from_spotify(spotify_artists[followed_artist.id])
         if newest_release is None:
             continue
 

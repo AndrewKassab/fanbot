@@ -13,7 +13,7 @@ class TestSpotify(unittest.TestCase):
         self.assertEqual(self.valid_artist_true_id, artist.id)
 
     async def test_get_artist_newest_release(self):
-        newest_release = await get_newest_release_by_artist_id(self.valid_artist_true_id)
+        newest_release = await get_newest_release_by_artist_from_spotify(self.valid_artist_true_id)
         curr_date = datetime.today().strftime('%Y-%m-%d')
         if newest_release:
             self.assertTrue(newest_release['release_date'] == curr_date)
