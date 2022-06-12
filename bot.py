@@ -48,14 +48,17 @@ async def send_new_releases():
 
         relevant_artists = []
         all_newest_release_ids = []
+        all_newest_release_names = []
         curr_guild_artists = db.get_all_artists_for_guild(followed_artist.guild_id)
         for artist in newest_release['artists']:
             if artist['id'] in curr_guild_artists.keys():
                 relevant_artists.append(curr_guild_artists[artist['id']])
                 all_newest_release_ids.append(curr_guild_artists[artist['id']].latest_release_id)
+                all_newest_release_names.append(curr_guild_artists[artist['id']].latest_release_name)
 
         # If we haven't already notified the guild of this release
-        if newest_release['id'] not in all_newest_release_ids:
+        if newest_release['id'] not in all_newest_release_ids \
+                and newest_release['name'] not in all_newest_release_names:
             await notify_release(newest_release, relevant_artists, channel)
 
 
@@ -67,7 +70,7 @@ async def notify_release(release, artists, channel):
     message = await channel.send(message_text + "<@&%s> New Release!\n:white_check_mark:: Assign Role."
                                                 ":x:: Remove Role.\n%s" % (artists[0].role_id, release_url))
     await add_role_reactions_to_message(message)
-    db.set_latest_notified_release_for_artists(artists=artists, new_release_id=release['id'])
+    db.set_latest_release_for_artists(artists=artists, new_release_id=release['id'], new_release_name=release['name'])
 
 
 @slash.slash(

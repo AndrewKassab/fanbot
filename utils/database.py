@@ -5,11 +5,12 @@ from collections import defaultdict
 
 class Artist:
 
-    def __init__(self, name, artist_id, guild_id=None, latest_release_id=None, role_id=None):
+    def __init__(self, name, artist_id, guild_id=None, latest_release_id=None, latest_release_name=None, role_id=None):
         self.id = artist_id
         self.name = name
         self.role_id = role_id
         self.latest_release_id = latest_release_id
+        self.latest_release_name = latest_release_name
         self.guild_id = guild_id
 
 
@@ -99,15 +100,18 @@ class MusicDatabase:
     def get_artist_for_guild(self, artist_id, guild_id):
         return self.guild_to_artists[guild_id].get(artist_id)
 
-    def set_latest_notified_release_for_artists(self, artists, new_release_id):
+    def set_latest_release_for_artists(self, artists, new_release_id, new_release_name):
         con = self.get_connection()
         cur = con.cursor()
         for artist in artists:
             cur.execute("UPDATE Artists SET latest_release_id='%s' WHERE "
                         "artist_id='%s' AND guild_id='%s'" % (new_release_id, artist.id, artist.guild_id))
+            cur.execute("UPDATE Artists SET latest_release_name='%s' WHERE "
+                        "artist_id='%s' AND guild_id='%s'" % (new_release_name, artist.id, artist.guild_id))
         con.commit()
         for artist in artists:
             self.guild_to_artists[artist.guild_id][artist.id].latest_release_id = new_release_id
+            self.guild_to_artists[artist.guild_id][artist.id].latest_release_name = new_release_name
         con.close()
 
     def get_music_channel_id_for_guild_id(self, guild_id):
