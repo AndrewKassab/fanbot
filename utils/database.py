@@ -38,9 +38,9 @@ class MusicDatabase:
     def get_connection(self):
         return self.db.connect(
             host='localhost',
-            user='musicbot',
+            user='fanbot',
             password=os.environ.get('FANBOT_DB_PASSWORD'),
-            database='musicbot',
+            database='fanbot',
         )
 
     def get_all_guilds(self):
