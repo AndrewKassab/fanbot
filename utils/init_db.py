@@ -20,7 +20,7 @@ cur.execute('DROP TABLE IF EXISTS Artists')
 cur.execute('CREATE TABLE Guilds (guild_id BIGINT NOT NULL PRIMARY KEY, channel_id BIGINT NOT NULL)')
 
 cur.execute('CREATE TABLE Artists (entry_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, '
-            'artist_id VARCHAR(22) NOT NULL PRIMARY KEY, name VARCHAR(100), role_id VARCHAR(18) NOT NULL, '
+            'artist_id VARCHAR(22) NOT NULL, name VARCHAR(100), role_id VARCHAR(18) NOT NULL, '
             'latest_release_id VARCHAR(22), latest_release_name VARCHAR(100), guild_id BIGINT NOT NULL)')
 
 con.commit()
