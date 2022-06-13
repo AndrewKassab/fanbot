@@ -39,7 +39,7 @@ class MusicDatabase:
         return self.db.connect(
             host='localhost',
             user='musicbot',
-            password=os.environ.get('MUSIC_BOT_DB_PASSWORD'),
+            password=os.environ.get('FANBOT_DB_PASSWORD'),
             database='musicbot',
         )
 

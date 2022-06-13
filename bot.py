@@ -12,10 +12,9 @@ db = MusicDatabase()
 FOLLOW_ROLE_EMOJI = '✅'
 UNFOLLOW_ROLE_EMOJI = '❌'
 
-SET_COMMAND = "musicset"
-FOLLOW_COMMAND = "musicfollow"
-UNFOLLOW_COMMAND = "musicunfollow"
-LIST_COMMAND = "musiclist"
+SET_COMMAND = "setchannel"
+FOLLOW_COMMAND = "follow"
+LIST_COMMAND = "list"
 
 
 @client.event
@@ -75,7 +74,7 @@ async def notify_release(release, artists, channel):
 
 @slash.slash(
     name=SET_COMMAND,
-    description="Use in the desired channel to receive updates",
+    description="Set the current channel to the update channel",
 )
 async def set_update_channel(ctx: SlashContext):
     message = await ctx.send("Attempting to configure current channel for updates...")
@@ -164,4 +163,4 @@ async def add_role_reactions_to_message(message):
     await message.add_reaction(UNFOLLOW_ROLE_EMOJI)
 
 
-client.run(os.environ.get('MUSIC_BOT_TOKEN'))
+client.run(os.environ.get('FANBOT_DISCORD_TOKEN'))

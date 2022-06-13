@@ -10,8 +10,8 @@ class InvalidArtistException(Exception):
         super().__init__("Artist not found or invalid")
 
 
-client_id = os.getenv('MUSIC_BOT_CLIENT_ID')
-client_secret = os.getenv('MUSIC_BOT_CLIENT_SECRET')
+client_id = os.getenv('FANBOT_SPOTIFY_CLIENT_ID')
+client_secret = os.getenv('FANBOT_SPOTIFY_CLIENT_SECRET')
 
 sp = spotify.Client(client_id, client_secret)
 
