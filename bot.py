@@ -29,14 +29,17 @@ async def send_new_releases():
     followed_artists = db.get_all_artists()
     spotify_artists = await get_artists_from_spotify(set(a.id for a in followed_artists))
     for followed_artist in followed_artists:
+        guild = client.get_guild(followed_artist.guild_id)
+        if guild is None:
+            db.remove_guild(followed_artist.guild_id)
+            continue
+
         channel_id = db.get_music_channel_id_for_guild_id(followed_artist.guild_id)
-        channel = client.get_guild(followed_artist.guild_id).get_channel(channel_id)
-        # update channel hasn't been set yet, or was deleted
+        channel = guild.get_channel(channel_id)
         if channel is None:
             continue
-        artist_role = channel.guild.get_role(int(followed_artist.role_id))
 
-        # server has manually deleted this artist from their roles
+        artist_role = channel.guild.get_role(int(followed_artist.role_id))
         if artist_role is None:
             db.remove_artist(followed_artist)
             continue

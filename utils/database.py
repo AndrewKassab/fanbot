@@ -68,6 +68,15 @@ class MusicDatabase:
         con.close()
         return artists_dict
 
+    def remove_guild(self, guild_id):
+        con = self.get_connection()
+        cur = con.cursor()
+        cur.execute(f"DELETE FROM Guilds WHERE guild_id='{guild_id}'")
+        cur.execute(f"DELETE FROM Artists WHERE guild_id='{guild_id}'")
+        con.commit()
+        self.guilds.pop(guild_id, None)
+        self.guild_to_artists[guild_id] = {}
+
     def add_artist(self, artist):
         con = self.get_connection()
         cur = con.cursor()
