@@ -3,6 +3,7 @@ from utils.database import MusicDatabase, Guild
 from discord.ext import tasks, commands
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_option
+import logging
 
 client = commands.Bot(command_prefix="/")
 slash = SlashCommand(client, sync_commands=True)
@@ -104,6 +105,7 @@ async def set_update_channel(ctx: SlashContext):
 )
 async def follow_artist(ctx: SlashContext, artist_link: str):
     message = await ctx.send('Attempting to follow artist...')
+
     if not db.is_guild_in_db(ctx.guild_id):
         await message.edit(content=f"You must first use `/{SET_COMMAND}` to configure a channel to send updates to.")
         return
@@ -113,6 +115,7 @@ async def follow_artist(ctx: SlashContext, artist_link: str):
     except InvalidArtistException:
         await message.edit(content="Artist not found, please make sure you are providing a valid spotify artist url")
         return
+
     artist_in_db = db.get_artist_for_guild(artist.id, ctx.guild_id)
     if artist_in_db is not None:
         role = ctx.guild.get_role(int(artist_in_db.role_id))
@@ -122,11 +125,19 @@ async def follow_artist(ctx: SlashContext, artist_link: str):
         role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
         artist.role_id = role.id
         artist.guild_id = ctx.guild.id
-        db.add_artist(artist)
+        try:
+            db.add_artist(artist)
+        except:
+            await message.edit(content="Failed to follow artist.")
+            await role.delete()
+            logging.exception('')
+            return
+
         await message.edit(
             content="<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
                     % (artist.role_id, artist.name))
         await add_role_reactions_to_message(message)
+
     await ctx.author.add_roles(role)
 
 

@@ -80,12 +80,9 @@ class MusicDatabase:
     def add_artist(self, artist):
         con = self.get_connection()
         cur = con.cursor()
-        try:
-            cur.execute("INSERT INTO Artists(artist_id, name, role_id, guild_id) VALUES('%s','%s','%s','%s')"
-                        % (artist.id, artist.name, artist.role_id, artist.guild_id))
-            self.guild_to_artists[artist.guild_id][artist.id] = artist
-        except self.db.IntegrityError:
-            raise ArtistAlreadyExistsException()
+        cur.execute("INSERT INTO Artists(artist_id, name, role_id, guild_id) VALUES(%s, %s, %s, %s)",
+                    (artist.id, artist.name, artist.role_id, artist.guild_id))
+        self.guild_to_artists[artist.guild_id][artist.id] = artist
         con.commit()
         con.close()
 
