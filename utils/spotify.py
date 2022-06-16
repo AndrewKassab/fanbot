@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timedelta, time
+import pytz
 from utils.database import Artist
 import spotify
 
@@ -25,6 +26,8 @@ async def get_artist_by_id(artist_id):
 
 
 async def get_artists_from_spotify(artist_ids):
+    if len(artist_ids) == 0 or artist_ids is None:
+        return []
     artists = await sp.get_artists(','.join(artist_ids))
     artist_dict = {}
     for artist in artists:
@@ -52,14 +55,14 @@ async def get_newest_release_by_artist_from_spotify(artist):
 
 
 def filter_releases_by_date(albums):
-    curr_date = datetime.today()
+    curr_date = datetime.now(tz=pytz.utc).astimezone(pytz.timezone('US/Pacific'))
     today_string = curr_date.strftime('%Y-%m-%d')
     tomorrow_string = (curr_date + timedelta(days=1)).strftime('%Y-%m-%d')
     new_items = []
     for item in albums:
         # Making sure the song has already released (with respect to US)
         if item.release_date == today_string or (item.release_date == tomorrow_string and
-                                                 datetime.now().time() >= time(21, 0)):
+                                                 curr_date.time() >= time(21, 0)):
             new_items.append(item)
     return new_items
 
