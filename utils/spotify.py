@@ -1,8 +1,10 @@
 import os
 from datetime import datetime, timedelta, time
 import pytz
+from json.decoder import JSONDecodeError
 from utils.database import Artist
 import spotify
+import logging
 
 
 class InvalidArtistException(Exception):
@@ -41,7 +43,11 @@ async def get_newest_release_by_artist_from_spotify(artist):
     artist_albums = []
     offset = 0
     while (len(artist_albums) != 0) or (offset == 0):
-        artist_albums = await artist.get_albums(limit=50, offset=offset)
+        try:
+            artist_albums = await artist.get_albums(limit=50, offset=offset)
+        except JSONDecodeError:
+            logging.exception(JSONDecodeError.msg)
+            return None
         possible_new_releases.extend(filter_releases_by_date(artist_albums))
         offset += 50
     # Sometimes utils creates 'albums' featuring multiple artists, we don't want to share these

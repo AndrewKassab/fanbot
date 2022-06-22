@@ -132,7 +132,7 @@ async def follow_artist(ctx: SlashContext, artist_link: str):
         artist.guild_id = ctx.guild.id
         try:
             db.add_artist(artist)
-        except:
+        except: # TODO: Make specific
             await message.edit(content="Failed to follow artist.")
             await role.delete()
             logging.exception('Failure to follow artist')
