@@ -5,6 +5,9 @@ from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_option
 import logging
 
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s;%(levelname)s;%(message)s")
+
 client = commands.Bot(command_prefix="/")
 slash = SlashCommand(client, sync_commands=True)
 
@@ -27,6 +30,7 @@ async def on_ready():
 # You could optimize this by avoiding spotify calls if we've already updated for this artist within this day
 @tasks.loop(minutes=10)
 async def send_new_releases():
+    logging.info('Checking for new releases')
     followed_artists = db.get_all_artists()
     spotify_artists = await get_artists_from_spotify(set(a.id for a in followed_artists))
     for followed_artist in followed_artists:
@@ -66,6 +70,7 @@ async def send_new_releases():
 
 
 async def notify_release(release, artists, channel):
+    logging.info(f"Notifying a new release by {artists[0].name} {artists[0].id} to Guild {channel.guild.id}")
     release_url = release['url'] if 'url' in release.keys() else release['external_urls']['spotify']
     message_text = ""
     for i in range(1, len(artists)):
@@ -130,9 +135,10 @@ async def follow_artist(ctx: SlashContext, artist_link: str):
         except:
             await message.edit(content="Failed to follow artist.")
             await role.delete()
-            logging.exception('')
+            logging.exception('Failure to follow artist')
             return
 
+        logging.info(f"Guild {ctx.guild_id} has followed a new artist: {artist.name} {artist.id}")
         await message.edit(
             content="<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
                     % (artist.role_id, artist.name))
