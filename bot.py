@@ -28,7 +28,7 @@ async def on_ready():
 
 
 # You could optimize this by avoiding spotify calls if we've already updated for this artist within this day
-@tasks.loop(minutes=10)
+@tasks.loop(minutes=10, reconnect=True)
 async def send_new_releases():
     logging.info('Checking for new releases')
     followed_artists = db.get_all_artists()
