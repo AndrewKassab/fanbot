@@ -28,7 +28,7 @@ async def on_ready():
 
 
 # You could optimize this by avoiding spotify calls if we've already updated for this artist within this day
-@tasks.loop(minutes=10)
+@tasks.loop(minutes=10, reconnect=True)
 async def send_new_releases():
     logging.info('Checking for new releases')
     followed_artists = db.get_all_artists()
@@ -132,10 +132,10 @@ async def follow_artist(ctx: SlashContext, artist_link: str):
         artist.guild_id = ctx.guild.id
         try:
             db.add_artist(artist)
-        except:
+        except Exception as e: # TODO: Make specific
             await message.edit(content="Failed to follow artist.")
             await role.delete()
-            logging.exception('Failure to follow artist')
+            logging.exception('Failure to follow artist and add to db: ', str(e))
             return
 
         logging.info(f"Guild {ctx.guild_id} has followed a new artist: {artist.name} {artist.id}")
