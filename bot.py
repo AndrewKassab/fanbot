@@ -24,6 +24,7 @@ LIST_COMMAND = "list"
 @client.event
 async def on_ready():
     logging.info('We have logged in as {0.user}'.format(client))
+    check_new_releases.add_exception_type(TypeError) # This is for spotify rate limiting us
     check_new_releases.start()
 
 
@@ -50,6 +51,7 @@ async def check_new_releases():
             continue
 
         newest_release = await get_newest_release_by_artist_from_spotify(spotify_artists[followed_artist.id])
+
         if newest_release is None:
             continue
 
@@ -69,6 +71,7 @@ async def check_new_releases():
             await notify_release(newest_release, relevant_artists, channel)
 
 
+@tasks.error(check_new_releases)
 async def notify_release(release, artists, channel):
     logging.info(f"Notifying a new release by {artists[0].name} {artists[0].id} to Guild {channel.guild.id}")
     release_url = release['url'] if 'url' in release.keys() else release['external_urls']['spotify']
