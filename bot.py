@@ -23,7 +23,7 @@ LIST_COMMAND = "list"
 
 @client.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
+    logging.info('We have logged in as {0.user}'.format(client))
     send_new_releases.start()
 
 
@@ -159,23 +159,24 @@ async def list_follows(ctx: SlashContext):
 
 @client.event
 async def on_raw_reaction_add(payload):
+    # Make sure this is a reaction to a valid message (one with a role)
+    user = await client.fetch_user(payload.user_id)
     channel = await client.fetch_channel(payload.channel_id)
     message = await channel.fetch_message(payload.message_id)
-    user = await client.fetch_user(payload.user_id)
+    if message.author != client.user or user == client.user or len(message.content) < 1 or message.content[1] != '@':
+        return
     guild = channel.guild
     member = payload.member
     reaction = payload.emoji
-    # Make sure this is a reaction to a valid message (one with a role)
-    if user != client.user and len(message.content) > 1 and message.content[1] == '@':
-        role_string = message.content.split()[0]
-        role_id = int(role_string[3:len(role_string) - 1])
-        role = guild.get_role(role_id=role_id)
-        if role is None:
-            return
-        if reaction.name == FOLLOW_ROLE_EMOJI:
-            await member.add_roles(role)
-        elif reaction.name == UNFOLLOW_ROLE_EMOJI:
-            await member.remove_roles(role)
+    role_string = message.content.split()[0]
+    role_id = int(role_string[3:len(role_string) - 1])
+    role = guild.get_role(role_id=role_id)
+    if role is None:
+        return
+    if reaction.name == FOLLOW_ROLE_EMOJI:
+        await member.add_roles(role)
+    elif reaction.name == UNFOLLOW_ROLE_EMOJI:
+        await member.remove_roles(role)
 
 
 async def add_role_reactions_to_message(message):
