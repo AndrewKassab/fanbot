@@ -45,7 +45,7 @@ async def get_newest_release_by_artist_from_spotify(artist):
     while (len(artist_albums) != 0) or (offset == 0):
         try:
             artist_albums = await artist.get_albums(limit=50, offset=offset)
-        except JSONDecodeError as e:
+        except (JSONDecodeError, TypeError, spotify.errors.NotFound) as e:
             logging.exception(e)
             return None
         possible_new_releases.extend(filter_releases_by_date(artist_albums))
