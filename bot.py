@@ -24,7 +24,6 @@ LIST_COMMAND = "list"
 @client.event
 async def on_ready():
     logging.info('We have logged in as {0.user}'.format(client))
-    check_new_releases.add_exception_type(TypeError) # This is for spotify rate limiting us
     check_new_releases.start()
 
 
