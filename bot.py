@@ -70,7 +70,6 @@ async def check_new_releases():
             await notify_release(newest_release, relevant_artists, channel)
 
 
-@tasks.error(check_new_releases)
 async def notify_release(release, artists, channel):
     logging.info(f"Notifying a new release by {artists[0].name} {artists[0].id} to Guild {channel.guild.id}")
     release_url = release['url'] if 'url' in release.keys() else release['external_urls']['spotify']
