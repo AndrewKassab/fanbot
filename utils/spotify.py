@@ -5,6 +5,7 @@ from utils.database import Artist
 import spotify
 from json import JSONDecodeError
 import logging
+from time import sleep
 
 
 class InvalidArtistException(Exception):
@@ -22,6 +23,7 @@ sp = spotify.Client(client_id, client_secret)
 async def get_artist_by_id(artist_id):
     try:
         result = await sp.get_artist(artist_id)
+        await sp.close()
         return Artist(artist_id=result.id, name=result.name)
     except spotify.errors.HTTPException:
         raise InvalidArtistException
@@ -37,7 +39,6 @@ async def get_artists_from_spotify(artist_ids):
     return artist_dict
 
 
-# New means current day
 async def get_newest_release_by_artist_from_spotify(artist):
     possible_new_releases = []
     artist_albums = []
@@ -45,9 +46,13 @@ async def get_newest_release_by_artist_from_spotify(artist):
     while (len(artist_albums) != 0) or (offset == 0):
         try:
             artist_albums = await artist.get_albums(limit=50, offset=offset)
-        except JSONDecodeError as e:
+        except (JSONDecodeError, spotify.errors.NotFound) as e:
             logging.exception(e)
             return None
+        except TypeError:
+            logging.info("We're being rate limited")
+            sleep(5)  # Wait before we try again
+            continue
         possible_new_releases.extend(filter_releases_by_date(artist_albums))
         offset += 50
     # Sometimes utils creates 'albums' featuring multiple artists, we don't want to share these
