@@ -1,15 +1,22 @@
+from discord_slash import SlashCommand, SlashContext
+from discord_slash.utils.manage_commands import create_option
+
 from utils.spotify import *
 from utils.database import MusicDatabase, Guild
 from discord.ext import tasks, commands
+from cogs.releases import ReleasesCog
 import logging
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s;%(levelname)s;%(message)s")
 
-client = commands.Bot(command_prefix="/")
-slash = SlashCommand(client, sync_commands=True)
-
 db = MusicDatabase()
+
+bot = commands.Bot(command_prefix="/")
+bot.add_cog(ReleasesCog(bot, db))
+
+slash = SlashCommand(bot, sync_commands=True)
+
 
 FOLLOW_ROLE_EMOJI = '✅'
 UNFOLLOW_ROLE_EMOJI = '❌'
@@ -19,65 +26,9 @@ FOLLOW_COMMAND = "follow"
 LIST_COMMAND = "list"
 
 
-@client.event
+@bot.event
 async def on_ready():
-    logging.info('We have logged in as {0.user}'.format(client))
-    check_new_releases.start()
-
-
-# You could optimize this by avoiding spotify calls if we've already updated for this artist within this day
-@tasks.loop(minutes=15)
-async def check_new_releases():
-    logging.info('Checking for new releases')
-    followed_artists = db.get_all_artists()
-    spotify_artists = await get_artists_by_ids(set(a.id for a in followed_artists))
-    for followed_artist in followed_artists:
-        guild = client.get_guild(followed_artist.guild_id)
-        if guild is None:
-            db.remove_guild(followed_artist.guild_id)
-            continue
-
-        channel_id = db.get_music_channel_id_for_guild_id(followed_artist.guild_id)
-        channel = guild.get_channel(channel_id)
-        if channel is None:
-            continue
-
-        artist_role = channel.guild.get_role(int(followed_artist.role_id))
-        if artist_role is None:
-            db.remove_artist(followed_artist)
-            continue
-
-        newest_release = await get_newest_release_by_artist(spotify_artists[followed_artist.id])
-
-        if newest_release is None:
-            continue
-
-        relevant_artists = []
-        all_newest_release_ids = []
-        all_newest_release_names = []
-        curr_guild_artists = db.get_all_artists_for_guild(followed_artist.guild_id)
-        for artist in newest_release['artists']:
-            if artist['id'] in curr_guild_artists.keys():
-                relevant_artists.append(curr_guild_artists[artist['id']])
-                all_newest_release_ids.append(curr_guild_artists[artist['id']].latest_release_id)
-                all_newest_release_names.append(curr_guild_artists[artist['id']].latest_release_name)
-
-        # If we haven't already notified the guild of this release
-        if newest_release['id'] not in all_newest_release_ids \
-                and newest_release['name'] not in all_newest_release_names:
-            await notify_release(newest_release, relevant_artists, channel)
-
-
-async def notify_release(release, artists, channel):
-    logging.info(f"Notifying a new release by {artists[0].name} {artists[0].id} to Guild {channel.guild.id}")
-    release_url = release['url'] if 'url' in release.keys() else release['external_urls']['spotify']
-    message_text = ""
-    for i in range(1, len(artists)):
-        message_text += '<@&%s>, ' % artists[i].role_id
-    message = await channel.send(message_text + "<@&%s> New Release!\n:white_check_mark:: Assign Role."
-                                                ":x:: Remove Role.\n%s" % (artists[0].role_id, release_url))
-    await add_role_reactions_to_message(message)
-    db.set_latest_release_for_artists(artists=artists, new_release_id=release['id'], new_release_name=release['name'])
+    logging.info('We have logged in as {0.user}'.format(bot))
 
 
 @slash.slash(
@@ -141,7 +92,8 @@ async def follow_artist(ctx: SlashContext, artist_link: str):
         await message.edit(
             content="<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
                     % (artist.role_id, artist.name))
-        await add_role_reactions_to_message(message)
+        await message.add_reaction(FOLLOW_ROLE_EMOJI)
+        await message.add_reaction(UNFOLLOW_ROLE_EMOJI)
 
     await ctx.author.add_roles(role)
 
@@ -156,13 +108,13 @@ async def list_follows(ctx: SlashContext):
     await message.edit(content="Following Artists: %s" % list(artist.name for artist in artists.values()))
 
 
-@client.event
+@bot.event
 async def on_raw_reaction_add(payload):
     # Make sure this is a reaction to a valid message (one with a role)
-    user = await client.fetch_user(payload.user_id)
-    channel = await client.fetch_channel(payload.channel_id)
+    user = await bot.fetch_user(payload.user_id)
+    channel = await bot.fetch_channel(payload.channel_id)
     message = await channel.fetch_message(payload.message_id)
-    if message.author != client.user or user == client.user or len(message.content) < 1 or message.content[1] != '@':
+    if message.author != bot.user or user == bot.user or len(message.content) < 1 or message.content[1] != '@':
         return
     guild = channel.guild
     member = payload.member
@@ -183,4 +135,4 @@ async def add_role_reactions_to_message(message):
     await message.add_reaction(UNFOLLOW_ROLE_EMOJI)
 
 
-client.run(os.environ.get('FANBOT_DISCORD_TOKEN'))
+bot.run(os.environ.get('FANBOT_DISCORD_TOKEN'))

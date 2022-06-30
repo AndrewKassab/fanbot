@@ -9,6 +9,10 @@ class ReleasesCog(commands.Cog):
         self.bot = bot
         self.db = db
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.check_new_releases.start()
+
     @tasks.loop(minutes=15)
     async def check_new_releases(self):
         logging.info('Checking for new releases')
@@ -58,9 +62,7 @@ class ReleasesCog(commands.Cog):
             message_text += '<@&%s>, ' % artists[i].role_id
         message = await channel.send(message_text + "<@&%s> New Release!\n:white_check_mark:: Assign Role."
                                                     ":x:: Remove Role.\n%s" % (artists[0].role_id, release_url))
-        await self.add_role_reactions_to_message(message)
-        self.db.set_latest_release_for_artists(artists=artists, new_release_id=release['id'], new_release_name=release['name'])
-
-    async def add_role_reactions_to_message(self, message):
         await message.add_reaction(FOLLOW_ROLE_EMOJI)
         await message.add_reaction(UNFOLLOW_ROLE_EMOJI)
+        self.db.set_latest_release_for_artists(artists=artists, new_release_id=release['id'], new_release_name=release['name'])
+
