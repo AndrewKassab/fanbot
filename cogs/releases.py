@@ -14,7 +14,7 @@ class ReleasesCog(commands.Cog):
     async def on_ready(self):
         self.check_new_releases.start()
 
-    @tasks.loop(minutes=15)
+    @tasks.loop(minutes=10)
     async def check_new_releases(self):
         logging.info('Checking for new releases')
         followed_artists = self.db.get_all_artists()
@@ -36,24 +36,26 @@ class ReleasesCog(commands.Cog):
                 continue
 
             newest_release = await spotify.get_newest_release_by_artist(spotify_artists[followed_artist.id])
-
             if newest_release is None:
                 continue
 
-            relevant_artists = []
-            all_newest_release_ids = []
-            all_newest_release_names = []
-            curr_guild_artists = self.db.get_all_artists_for_guild(followed_artist.guild_id)
-            for artist in newest_release['artists']:
-                if artist['id'] in curr_guild_artists.keys():
-                    relevant_artists.append(curr_guild_artists[artist['id']])
-                    all_newest_release_ids.append(curr_guild_artists[artist['id']].latest_release_id)
-                    all_newest_release_names.append(curr_guild_artists[artist['id']].latest_release_name)
-
-            # If we haven't already notified the guild of this release
-            if newest_release['id'] not in all_newest_release_ids \
-                    and newest_release['name'] not in all_newest_release_names:
+            relevant_artists = self.get_relevant_artists_for_release(newest_release, followed_artist.guild_id)
+            if relevant_artists is not None:
                 await self.notify_release(newest_release, relevant_artists, channel)
+
+    def get_relevant_artists_for_release(self, release, guild_id):
+        relevant_artists = []
+        all_newest_release_ids = []
+        all_newest_release_names = []
+        curr_guild_artists = self.db.get_all_artists_for_guild(guild_id)
+        for artist in release['artists']:
+            if artist['id'] in curr_guild_artists.keys():
+                relevant_artists.append(curr_guild_artists[artist['id']])
+                all_newest_release_ids.append(curr_guild_artists[artist['id']].latest_release_id)
+                all_newest_release_names.append(curr_guild_artists[artist['id']].latest_release_name)
+        if release['id'] in all_newest_release_ids or release['name'] in all_newest_release_names:
+            return None
+        return relevant_artists
 
     async def notify_release(self, release, artists, channel):
         logging.info(f"Notifying a new release by {artists[0].name} {artists[0].id} to Guild {channel.guild.id}")
@@ -66,4 +68,3 @@ class ReleasesCog(commands.Cog):
         await message.add_reaction(FOLLOW_ROLE_EMOJI)
         await message.add_reaction(UNFOLLOW_ROLE_EMOJI)
         self.db.set_latest_release_for_artists(artists=artists, new_release_id=release['id'], new_release_name=release['name'])
-
