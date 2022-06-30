@@ -30,7 +30,7 @@ async def on_ready():
 async def check_new_releases():
     logging.info('Checking for new releases')
     followed_artists = db.get_all_artists()
-    spotify_artists = await get_artists_from_spotify(set(a.id for a in followed_artists))
+    spotify_artists = await get_artists_by_ids(set(a.id for a in followed_artists))
     for followed_artist in followed_artists:
         guild = client.get_guild(followed_artist.guild_id)
         if guild is None:
@@ -47,7 +47,7 @@ async def check_new_releases():
             db.remove_artist(followed_artist)
             continue
 
-        newest_release = await get_newest_release_by_artist_from_spotify(spotify_artists[followed_artist.id])
+        newest_release = await get_newest_release_by_artist(spotify_artists[followed_artist.id])
 
         if newest_release is None:
             continue

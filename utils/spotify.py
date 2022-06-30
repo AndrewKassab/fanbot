@@ -29,7 +29,7 @@ async def get_artist_by_id(artist_id):
         raise InvalidArtistException
 
 
-async def get_artists_from_spotify(artist_ids):
+async def get_artists_by_ids(artist_ids):
     if len(artist_ids) == 0 or artist_ids is None:
         return []
     artists = await sp.get_artists(','.join(artist_ids))
@@ -39,7 +39,7 @@ async def get_artists_from_spotify(artist_ids):
     return artist_dict
 
 
-async def get_newest_release_by_artist_from_spotify(artist):
+async def get_newest_release_by_artist(artist):
     possible_new_releases = []
     artist_albums = []
     offset = 0
