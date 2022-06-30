@@ -10,3 +10,10 @@ Fanbot is the ultimate music fanboy! Keep your discord server updated on release
 # Example
 
 ![Example Image](https://github.com/andrewkassab/mrmusic/blob/main/example.png?raw=true)
+
+# Development (Python 3.7+)
+
+**Environment Variables:**  
+- FANBOT_SPOTIFY_CLIENT_ID
+- FANBOT-SPOTIFY_CLIENT_SECRET
+- FANBOT_DISCORD_TOKEN
