@@ -48,10 +48,6 @@ async def get_newest_release_by_artist_from_spotify(artist):
         except (JSONDecodeError, spotify.errors.NotFound) as e:
             logging.exception(e)
             return None
-        except TypeError:
-            logging.info("We're being rate limited")
-            sleep(5)  # Wait before we try again
-            continue
         possible_new_releases.extend(filter_releases_by_date(artist_albums))
         offset += 50
     # Sometimes utils creates 'albums' featuring multiple artists, we don't want to share these
