@@ -23,7 +23,6 @@ sp = spotify.Client(client_id, client_secret)
 async def get_artist_by_id(artist_id):
     try:
         result = await sp.get_artist(artist_id)
-        await sp.close()
         return Artist(artist_id=result.id, name=result.name)
     except spotify.errors.HTTPException:
         raise InvalidArtistException
