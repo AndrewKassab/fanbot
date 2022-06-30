@@ -11,7 +11,9 @@ Fanbot is the ultimate music fanboy! Keep your discord server updated on release
 
 ![Example Image](https://github.com/andrewkassab/mrmusic/blob/main/example.png?raw=true)
 
-# Development (Python 3.7+)
+# Development
+
+* Use python 3.7 or 3.8, otherwise there are unexpected behaviors when spotify rate limits. 
 
 **Environment Variables:**  
 - FANBOT_SPOTIFY_CLIENT_ID
