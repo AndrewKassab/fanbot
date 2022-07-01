@@ -5,7 +5,6 @@ from utils.database import Artist
 import spotify
 from json import JSONDecodeError
 import logging
-from time import sleep
 
 
 class InvalidArtistException(Exception):
