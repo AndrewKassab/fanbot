@@ -125,6 +125,8 @@ async def follow_artist(ctx: SlashContext, artist_link: str):
     artist_in_db = db.get_artist_for_guild(artist.id, ctx.guild_id)
     if artist_in_db is not None:
         role = ctx.guild.get_role(int(artist_in_db.role_id))
+        if role is None:
+            role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
         await message.edit(content='This server is already following %s! We\'ve assigned '
                                    'you the corresponding role.' % artist_in_db.name)
     else:
