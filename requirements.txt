@@ -1,5 +1,5 @@
 discord.py
-mysql~=0.0.3
+discord-py-slash-command
 mysql-connector-python~=8.0.29
 spotify~=0.10.2
 pytz~=2022.1
