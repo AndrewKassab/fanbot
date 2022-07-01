@@ -13,7 +13,12 @@ Fanbot is the ultimate music fanboy! Keep your discord server updated on release
 
 # Development
 
-* Use python 3.7 or 3.8, otherwise there are unexpected behaviors when spotify rate limits. 
+Use python 3.7 - 3.9, otherwise there will be unexpected behaviors when Spotify rate limits you.
+
+1. Create an app on [Spotify](https://developer.spotify.com/dashboard/applications), copy over the client id and client secret.
+2. Create an app and bot on [Discord](https://discord.com/developers/applications) and add the bot to your test server.
+- Scopes: bot, applications.commands
+- Bot Permissions: Administrator (temporary until I figure out more precise permissions)
 
 **Environment Variables:**  
 - FANBOT_SPOTIFY_CLIENT_ID
