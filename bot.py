@@ -126,27 +126,29 @@ async def follow_artist(ctx: SlashContext, artist_link: str):
     if artist_in_db is not None:
         role = ctx.guild.get_role(int(artist_in_db.role_id))
         if role is None:
-            role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
-        await message.edit(content='This server is already following %s! We\'ve assigned '
-                                   'you the corresponding role.' % artist_in_db.name)
-    else:
-        role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
-        artist.role_id = role.id
-        artist.guild_id = ctx.guild.id
-        try:
-            db.add_artist(artist)
-        except Exception as e: # TODO: Make specific
-            await message.edit(content="Failed to follow artist.")
-            await role.delete()
-            logging.exception('Failure to follow artist and add to db: ', str(e))
+            db.remove_artist(artist_in_db)
+        else:
+            await message.edit(content='This server is already following %s! We\'ve assigned '
+                                       'you the corresponding role.' % artist_in_db.name)
+            await ctx.author.add_roles(role)
             return
 
-        logging.info(f"Guild {ctx.guild_id} has followed a new artist: {artist.name} {artist.id}")
-        await message.edit(
-            content="<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
-                    % (artist.role_id, artist.name))
-        await add_role_reactions_to_message(message)
+    role = await ctx.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
+    artist.role_id = role.id
+    artist.guild_id = ctx.guild.id
+    try:
+        db.add_artist(artist)
+    except Exception as e: # TODO: Make specific
+        await message.edit(content="Failed to follow artist.")
+        await role.delete()
+        logging.exception('Failure to follow artist and add to db: ', str(e))
+        return
 
+    logging.info(f"Guild {ctx.guild_id} has followed a new artist: {artist.name} {artist.id}")
+    await message.edit(
+        content="<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
+                % (artist.role_id, artist.name))
+    await add_role_reactions_to_message(message)
     await ctx.author.add_roles(role)
 
 
