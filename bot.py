@@ -19,7 +19,6 @@ bot.add_cog(ReleasesCog(bot, db))
 slash = SlashCommand(bot, sync_commands=True)
 
 
-
 @bot.event
 async def on_ready():
     logging.info('We have logged in as {0.user}'.format(bot))
