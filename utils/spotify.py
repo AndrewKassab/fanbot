@@ -30,6 +30,7 @@ async def get_artist_by_id(artist_id):
 async def get_artists_by_ids(artist_ids):
     if len(artist_ids) == 0 or artist_ids is None:
         return []
+
     ceiling = 0
     start = 0
     artists = []
@@ -45,52 +46,36 @@ async def get_artists_by_ids(artist_ids):
 
 
 async def get_newest_release_by_artist(artist):
-    possible_new_releases = []
-    artist_albums = []
-    offset = 0
-    while (len(artist_albums) != 0) or (offset == 0):
-        try:
-            artist_albums = await artist.get_albums(limit=50, offset=offset)
-        except (JSONDecodeError, spotify.errors.NotFound) as e:
-            logging.exception(e)
-            return None
-        possible_new_releases.extend(filter_releases_by_date(artist_albums))
-        offset += 50
-    # Sometimes utils creates 'albums' featuring multiple artists, we don't want to share these
-    actual_new_releases = []
-    for release in possible_new_releases:
-        if release.artists[0].name != 'Various Artists' and any(x.name == artist.name for x in release.artists):
-            actual_new_releases.append(release)
-    if len(actual_new_releases) > 0:
-        return await get_ideal_newest_release(actual_new_releases)
-    return None
+    try:
+        newest_album = (await artist.get_albums(limit=1, include_groups='album'))[0]
+        if is_release_new(newest_album):
+            newest_release = convert_album_to_dict(newest_album)
+            return newest_release
+        newest_single = (await artist.get_albums(limit=1, include_groups='single'))[0]
+        if is_release_new(newest_single):
+            return (await newest_single._Album__client.http.album_tracks(newest_single.id))['items'][0]
+        return None
+    except (JSONDecodeError, spotify.errors.NotFound) as e:
+        logging.exception(e)
+        return None
 
 
-def filter_releases_by_date(albums):
+def is_release_new(release):
+    if release is None:
+        return False
     curr_date = datetime.now(tz=pytz.utc).astimezone(pytz.timezone('US/Pacific'))
     today_string = curr_date.strftime('%Y-%m-%d')
     tomorrow_string = (curr_date + timedelta(days=1)).strftime('%Y-%m-%d')
-    new_items = []
-    for item in albums:
-        # Making sure the song has already released (with respect to US)
-        if item.release_date == today_string or (item.release_date == tomorrow_string and
-                                                 curr_date.time() >= time(21, 0)):
-            new_items.append(item)
-    return new_items
+    if release.release_date == today_string or (release.release_date == tomorrow_string and
+                                                curr_date.time() >= time(21, 0)):
+        return True
+    return False
 
 
-# If there is an album, just return that instead of all the songs in it, otherwise just get a song
-async def get_ideal_newest_release(releases):
-    for release in releases:
-        if release.type != 'single':
-            for i in range(len(release.artists)):
-                release.artists[i] = release.artists[i].__dict__
-            return release.__dict__
-    release = releases[0]
-    if release.type == 'single':
-        tracks = await release._Album__client.http.album_tracks(release.id)
-        release = tracks['items'][0]
-    return release
+def convert_album_to_dict(album):
+    for i in range(len(album.artists)):
+        album.artists[i] = album.artists[i].__dict__
+    return album.__dict__
 
 
 def extract_artist_id(artist_link):
