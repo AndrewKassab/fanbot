@@ -47,13 +47,13 @@ async def get_artists_by_ids(artist_ids):
 
 async def get_newest_release_by_artist(artist):
     try:
-        newest_album = (await artist.get_albums(limit=1, include_groups='album'))[0]
+        newest_album = (await artist.get_albums(limit=1, include_groups='album'))
         if is_release_new(newest_album):
-            newest_release = convert_album_to_dict(newest_album)
+            newest_release = convert_album_to_dict(newest_album[0])
             return newest_release
-        newest_single = (await artist.get_albums(limit=1, include_groups='single'))[0]
+        newest_single = (await artist.get_albums(limit=1, include_groups='single'))
         if is_release_new(newest_single):
-            return (await newest_single._Album__client.http.album_tracks(newest_single.id))['items'][0]
+            return (await newest_single._Album__client.http.album_tracks(newest_single[0].id))['items'][0]
         return None
     except (JSONDecodeError, spotify.errors.NotFound) as e:
         logging.exception(e)
@@ -61,12 +61,12 @@ async def get_newest_release_by_artist(artist):
 
 
 def is_release_new(release):
-    if release is None:
+    if release is None or len(release) == 0:
         return False
     curr_date = datetime.now(tz=pytz.utc).astimezone(pytz.timezone('US/Pacific'))
     today_string = curr_date.strftime('%Y-%m-%d')
     tomorrow_string = (curr_date + timedelta(days=1)).strftime('%Y-%m-%d')
-    if release.release_date == today_string or (release.release_date == tomorrow_string and
+    if release[0].release_date == today_string or (release[0].release_date == tomorrow_string and
                                                 curr_date.time() >= time(21, 0)):
         return True
     return False
