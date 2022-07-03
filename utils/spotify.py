@@ -30,7 +30,14 @@ async def get_artist_by_id(artist_id):
 async def get_artists_from_spotify(artist_ids):
     if len(artist_ids) == 0 or artist_ids is None:
         return []
-    artists = await sp.get_artists(','.join(artist_ids))
+    ceiling = 0
+    start = 0
+    artists = []
+    while ceiling < len(artist_ids):
+        ceiling += 50
+        artists.extend(await sp.get_artists(','.join(artist_ids[start:ceiling])))
+        start = ceiling
+
     artist_dict = {}
     for artist in artists:
         artist_dict[artist.id] = artist

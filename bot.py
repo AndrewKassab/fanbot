@@ -32,7 +32,7 @@ async def on_ready():
 async def check_new_releases():
     logging.info('Checking for new releases')
     followed_artists = db.get_all_artists()
-    spotify_artists = await get_artists_from_spotify(set(a.id for a in followed_artists))
+    spotify_artists = await get_artists_from_spotify(list(set(a.id for a in followed_artists)))
     for followed_artist in followed_artists:
         guild = client.get_guild(followed_artist.guild_id)
         if guild is None:
