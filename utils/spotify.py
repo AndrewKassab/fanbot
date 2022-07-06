@@ -53,7 +53,7 @@ async def get_newest_release_by_artist(artist):
             return newest_release
         newest_single = (await artist.get_albums(limit=1, include_groups='single'))
         if is_release_new(newest_single):
-            return (await newest_single._Album__client.http.album_tracks(newest_single[0].id))['items'][0]
+            return (await newest_single[0]._Album__client.http.album_tracks(newest_single[0].id))['items'][0]
         return None
     except (JSONDecodeError, spotify.errors.NotFound) as e:
         logging.exception(e)
