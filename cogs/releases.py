@@ -12,6 +12,7 @@ class ReleasesCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        self.check_new_releases.add_exception_type(Exception)
         self.check_new_releases.start()
 
     @tasks.loop(minutes=10)
