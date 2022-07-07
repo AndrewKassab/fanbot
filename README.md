@@ -1,5 +1,5 @@
-# Fanbot (Public invite link coming soon, in final testing phases)
-Fanbot is the ultimate music fanboy! Keep your discord server updated on releases from the spotify artists you love.
+# Fanbot **[(Invite to Server)](https://discord.com/api/oauth2/authorize?client_id=885000888131915799&permissions=8&scope=applications.commands%20bot)**
+Fanbot is the ultimate music fanboy! Keep your discord server updated on releases from the spotify artists you love.   
 
 **Commands:** (Works with discord slash commands)
 1. /setchannel - sets the current channel as the channel that release updates will send to
