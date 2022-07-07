@@ -53,7 +53,12 @@ async def get_newest_release_by_artist(artist):
             return newest_release
         newest_single = (await artist.get_albums(limit=1, include_groups='single'))
         if is_release_new(newest_single):
-            return (await newest_single[0]._Album__client.http.album_tracks(newest_single[0].id))['items'][0]
+            tracks = (await newest_single[0]._Album__client.http.album_tracks(newest_single[0].id))
+            if len(tracks) > 1:
+                newest_release = convert_album_to_dict(newest_single[0])
+            else:
+                newest_release = tracks['items'][0]
+            return newest_release
         return None
     except (JSONDecodeError, spotify.errors.NotFound, spotify.errors.BearerTokenError) as e:
         logging.exception(e)
