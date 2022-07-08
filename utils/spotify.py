@@ -54,7 +54,7 @@ async def get_newest_release_by_artist(artist):
         newest_single = (await artist.get_albums(limit=1, include_groups='single'))
         if is_release_new(newest_single):
             tracks = (await newest_single[0]._Album__client.http.album_tracks(newest_single[0].id))
-            if len(tracks) > 1:
+            if len(tracks['items']) > 1:
                 newest_release = convert_album_to_dict(newest_single[0])
             else:
                 newest_release = tracks['items'][0]
