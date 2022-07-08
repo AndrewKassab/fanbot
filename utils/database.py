@@ -112,8 +112,11 @@ class MusicDatabase:
         for artist in artists:
             cur.execute("UPDATE Artists SET latest_release_id='%s' WHERE "
                         "artist_id='%s' AND guild_id='%s'" % (new_release_id, artist.id, artist.guild_id))
-            cur.execute("UPDATE Artists SET latest_release_name='%s' WHERE "
-                        "artist_id='%s' AND guild_id='%s'" % (new_release_name, artist.id, artist.guild_id))
+            try:
+                cur.execute("UPDATE Artists SET latest_release_name='%s' WHERE "
+                            "artist_id='%s' AND guild_id='%s'" % (new_release_name, artist.id, artist.guild_id))
+            except mysql.connector.errors.DatabaseError:
+                continue
         con.commit()
         for artist in artists:
             self.guild_to_artists[artist.guild_id][artist.id].latest_release_id = new_release_id
