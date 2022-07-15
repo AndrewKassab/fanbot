@@ -1,5 +1,3 @@
-from discord_slash import SlashCommand, SlashContext
-from discord_slash.utils.manage_commands import create_option
 from config.emojis import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI
 from config.commands import *
 from utils.spotify import *
@@ -8,13 +6,14 @@ from discord.ext import commands
 from cogs.releases import ReleasesCog
 from cogs.app_commands import AppCommandsCog
 import logging
+import discord
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s;%(levelname)s;%(message)s")
 
 db = MusicDatabase()
 
-bot = commands.Bot(command_prefix="/")
+bot = commands.Bot(command_prefix="/", intents=discord.Intents.default())
 
 
 @bot.event
