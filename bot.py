@@ -1,5 +1,4 @@
 from config.emojis import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI
-from config.commands import *
 from utils.spotify import *
 from utils.database import MusicDatabase, Guild
 from discord.ext import commands
@@ -8,13 +7,22 @@ from cogs.app_commands import AppCommandsCog
 import logging
 import discord
 
+
+class FanBot(commands.Bot):
+
+    def __init__(self):
+        super().__init__(command_prefix="!", intents=discord.Intents.default())
+        self.db = MusicDatabase()
+
+    async def setup_hook(self) -> None:
+        await self.add_cog(ReleasesCog(bot, self.db))
+        await self.add_cog(AppCommandsCog(bot, self.db))
+
+
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s;%(levelname)s;%(message)s")
 
-db = MusicDatabase()
-
-bot = commands.Bot(command_prefix="/", intents=discord.Intents.default())
-
+bot = FanBot()
 
 @bot.event
 async def on_ready():
@@ -42,8 +50,5 @@ async def on_raw_reaction_add(payload):
     elif reaction.name == UNFOLLOW_ROLE_EMOJI:
         await member.remove_roles(role)
 
-
-bot.add_cog(ReleasesCog(bot, db))
-bot.add_cog(AppCommandsCog(db))
 
 bot.run(os.environ.get('FANBOT_DISCORD_TOKEN'))

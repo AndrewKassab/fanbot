@@ -10,8 +10,9 @@ import discord
 
 class AppCommandsCog(commands.Cog):
 
-    def __init__(self, db):
+    def __init__(self, bot, db):
         self.db = db
+        self.bot = bot
 
     @app_commands.command(
         name=SET_COMMAND,
@@ -79,7 +80,4 @@ class AppCommandsCog(commands.Cog):
         message = await interaction.send('Attempting to list all followed artists...')
         artists = self.db.get_all_artists_for_guild(guild_id=interaction.guild_id)
         await message.edit(content="Following Artists: %s" % list(artist.name for artist in artists.values()))
-
-
-
 
