@@ -28,7 +28,12 @@ class AppCommandsCog(commands.Cog):
             self.db.update_guild_channel_id(interaction.guild_id, interaction.channel_id)
             await interaction.edit_original_message(content="Current channel successfully configured for updates.")
 
-    # TODO: Command details
+    @app_commands.command(
+        name=FOLLOW_COMMAND,
+        description="Follow a spotify artist",
+
+    )
+    @app_commands.describe(artist_link="The artist's spotify share link")
     async def follow_artist(self, interaction: discord.Interaction, artist_link: str):
         await interaction.response.send_message('Attempting to follow artist...')
 
