@@ -18,9 +18,9 @@ class ReleasesCog(commands.Cog):
         logging.info('Checking for new releases')
         followed_artists = self.bot.db.get_all_artists()
         for artist in followed_artists:
-            self.check_new_release_for_artist(artist)
+            await self.check_new_release_for_artist(artist)
 
-    def check_new_release_for_artist(self, artist):
+    async def check_new_release_for_artist(self, artist):
         guild = self.bot.get_guild(artist.guild_id)
         if guild is None:
             self.bot.db.remove_guild(artist.guild_id)
