@@ -16,20 +16,23 @@ class InvalidArtistException(Exception):
 client_id = os.getenv('FANBOT_SPOTIFY_CLIENT_ID')
 client_secret = os.getenv('FANBOT_SPOTIFY_CLIENT_SECRET')
 
-sp = spotify.Client(client_id, client_secret)
-
 
 async def get_artist_by_id(artist_id):
+    sp = spotify.Client(client_id, client_secret)
     try:
         result = await sp.get_artist(artist_id)
+        await sp.close()
         return Artist(artist_id=result.id, name=result.name)
     except spotify.errors.HTTPException:
+        await sp.close()
         raise InvalidArtistException
 
 
 async def get_artists_by_ids(artist_ids):
     if len(artist_ids) == 0 or artist_ids is None:
         return []
+
+    sp = spotify.Client(client_id, client_secret)
 
     ceiling = 0
     start = 0
@@ -42,37 +45,39 @@ async def get_artists_by_ids(artist_ids):
     artist_dict = {}
     for artist in artists:
         artist_dict[artist.id] = artist
+
     return artist_dict
 
 
 async def get_newest_release_by_artist(artist):
+    sp = spotify.Client(client_id, client_secret)
     try:
-        newest_album = (await artist.get_albums(limit=1, include_groups='album'))
+        newest_album = (await sp.http.artist_albums(artist.id, limit=1, include_groups='album'))['items'][0]
         if is_release_new(newest_album):
-            newest_release = convert_album_to_dict(newest_album[0])
-            return newest_release
-        newest_single = (await artist.get_albums(limit=1, include_groups='single'))
+            await sp.close()
+            return newest_album
+        newest_single = (await sp.http.artist_albums(artist.id, limit=1, include_groups='single'))['items'][0]
         if is_release_new(newest_single):
-            tracks = (await newest_single[0]._Album__client.http.album_tracks(newest_single[0].id))
-            if len(tracks['items']) > 1:
-                newest_release = convert_album_to_dict(newest_single[0])
-            else:
-                newest_release = tracks['items'][0]
-            return newest_release
+            tracks = await sp.http.album_tracks(newest_single['id'])
+            if len(tracks['items']) <= 1:
+                newest_single = tracks['items'][0]
+            await sp.close()
+            return newest_single
         return None
     except (JSONDecodeError, spotify.errors.NotFound, spotify.errors.BearerTokenError) as e:
         logging.exception(e)
+        await sp.close()
         return None
 
 
 def is_release_new(release):
-    if release is None or len(release) == 0:
+    if release is None:
         return False
     curr_date = datetime.now(tz=pytz.utc).astimezone(pytz.timezone('US/Pacific'))
     today_string = curr_date.strftime('%Y-%m-%d')
     tomorrow_string = (curr_date + timedelta(days=1)).strftime('%Y-%m-%d')
-    if release[0].release_date == today_string or (release[0].release_date == tomorrow_string and
-                                                curr_date.time() >= time(21, 0)):
+    if release['release_date'] == today_string or (release['release_date'] == tomorrow_string and
+                                                   curr_date.time() >= time(21, 0)):
         return True
     return False
 
@@ -88,6 +93,3 @@ def extract_artist_id(artist_link):
         raise InvalidArtistException
     without_url = artist_link[32:]
     return without_url.split('?')[0]
-
-
-

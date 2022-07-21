@@ -8,7 +8,6 @@ import logging
 import discord
 
 
-'''
 class FanBot(commands.Bot):
 
     def __init__(self):
@@ -18,15 +17,13 @@ class FanBot(commands.Bot):
     async def setup_hook(self) -> None:
         await self.add_cog(ReleasesCog(self))
         await self.add_cog(AppCommandsCog(self))
-'''
 
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s;%(levelname)s;%(message)s")
 
-bot = commands.Bot(command_prefix="!", intents=discord.Intents.default())
-bot.add_cog(ReleasesCog(bot))
-bot.add_cog(AppCommandsCog(bot))
+
+bot = FanBot()
 
 
 @bot.event
