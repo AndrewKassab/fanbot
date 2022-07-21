@@ -46,16 +46,13 @@ class ReleasesCog(commands.Cog):
 
     def get_relevant_artists_for_release(self, release, guild_id):
         relevant_artists = []
-        all_newest_release_ids = []
-        all_newest_release_names = []
         curr_guild_artists = self.bot.db.get_all_artists_for_guild(guild_id)
         for artist in release['artists']:
-            if artist['id'] in curr_guild_artists.keys():
+            db_artist = curr_guild_artists.get(artist['id'])
+            if db_artist is not None:
+                if release['id'] == db_artist.latest_release_id or release['name'] == db_artist.latest_release_name:
+                    return None
                 relevant_artists.append(curr_guild_artists[artist['id']])
-                all_newest_release_ids.append(curr_guild_artists[artist['id']].latest_release_id)
-                all_newest_release_names.append(curr_guild_artists[artist['id']].latest_release_name)
-        if release['id'] in all_newest_release_ids or release['name'] in all_newest_release_names:
-            return None
         return relevant_artists
 
     async def notify_release(self, release, artists, channel):
