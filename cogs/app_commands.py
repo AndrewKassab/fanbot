@@ -10,8 +10,7 @@ import discord
 
 class AppCommandsCog(commands.Cog):
 
-    def __init__(self, bot, db):
-        self.db = db
+    def __init__(self, bot):
         self.bot = bot
 
     @app_commands.command(
@@ -20,12 +19,12 @@ class AppCommandsCog(commands.Cog):
     )
     async def set_update_channel(self, interaction: discord.Interaction):
         await interaction.response.send_message("Attempting to configure current channel for updates...")
-        if not self.db.is_guild_in_db(interaction.guild_id):
-            self.db.add_guild(Guild(interaction.guild_id, interaction.channel_id))
+        if not self.bot.db.is_guild_in_db(interaction.guild_id):
+            self.bot.db.add_guild(Guild(interaction.guild_id, interaction.channel_id))
             await interaction.edit_original_message(content="Current channel successfully configured for updates. "
                                                             f"You may begin following artists using `/{FOLLOW_COMMAND}`.")
         else:
-            self.db.update_guild_channel_id(interaction.guild_id, interaction.channel_id)
+            self.bot.db.update_guild_channel_id(interaction.guild_id, interaction.channel_id)
             await interaction.edit_original_message(content="Current channel successfully configured for updates.")
 
     @app_commands.command(
@@ -37,7 +36,7 @@ class AppCommandsCog(commands.Cog):
     async def follow_artist(self, interaction: discord.Interaction, artist_link: str):
         await interaction.response.send_message('Attempting to follow artist...')
 
-        if not self.db.is_guild_in_db(interaction.guild_id):
+        if not self.bot.db.is_guild_in_db(interaction.guild_id):
             await interaction.edit_original_message(
                 content=f"You must first use `/{SET_COMMAND}` to configure a channel to send updates to.")
             return
@@ -49,11 +48,11 @@ class AppCommandsCog(commands.Cog):
                 content="Artist not found, please make sure you are providing a valid spotify artist url")
             return
 
-        artist_in_db = self.db.get_artist_for_guild(artist.id, interaction.guild_id)
+        artist_in_db = self.bot.db.get_artist_for_guild(artist.id, interaction.guild_id)
         if artist_in_db is not None:
             role = interaction.guild.get_role(int(artist_in_db.role_id))
             if role is None:
-                self.db.remove_artist(artist_in_db)
+                self.bot.db.remove_artist(artist_in_db)
             else:
                 await interaction.edit_original_message(content='This server is already following %s! We\'ve assigned '
                                            'you the corresponding role.' % artist_in_db.name)
@@ -64,7 +63,7 @@ class AppCommandsCog(commands.Cog):
         artist.role_id = role.id
         artist.guild_id = interaction.guild.id
         try:
-            self.db.add_artist(artist)
+            self.bot.db.add_artist(artist)
         except Exception as e:  # TODO: Make specific
             await interaction.edit_original_message(content="Failed to follow artist.")
             await role.delete()
@@ -85,6 +84,6 @@ class AppCommandsCog(commands.Cog):
     )
     async def list_follows(self, interaction: discord.Interaction):
         await interaction.response.send_message("Attempting to list all followed artists...")
-        artists = self.db.get_all_artists_for_guild(guild_id=interaction.guild_id)
+        artists = self.bot.db.get_all_artists_for_guild(guild_id=interaction.guild_id)
         await interaction.edit_original_message(
             content="Following Artists: %s" % list(artist.name for artist in artists.values()))
