@@ -17,29 +17,32 @@ class ReleasesCog(commands.Cog):
     async def check_new_releases(self):
         logging.info('Checking for new releases')
         followed_artists = self.bot.db.get_all_artists()
-        for followed_artist in followed_artists:
-            guild = self.bot.get_guild(followed_artist.guild_id)
-            if guild is None:
-                self.bot.db.remove_guild(followed_artist.guild_id)
-                continue
+        for artist in followed_artists:
+            self.check_new_release_for_artist(artist)
 
-            channel_id = self.bot.db.get_music_channel_id_for_guild_id(followed_artist.guild_id)
-            channel = guild.get_channel(channel_id)
-            if channel is None:
-                continue
+    def check_new_release_for_artist(self, artist):
+        guild = self.bot.get_guild(artist.guild_id)
+        if guild is None:
+            self.bot.db.remove_guild(artist.guild_id)
+            return
 
-            artist_role = channel.guild.get_role(int(followed_artist.role_id))
-            if artist_role is None:
-                self.bot.db.remove_artist(followed_artist)
-                continue
+        channel_id = self.bot.db.get_music_channel_id_for_guild_id(artist.guild_id)
+        channel = guild.get_channel(channel_id)
+        if channel is None:
+            return
 
-            newest_release = await spotify.get_newest_release_by_artist(followed_artist.id)
-            if newest_release is None:
-                continue
+        artist_role = channel.guild.get_role(int(artist.role_id))
+        if artist_role is None:
+            self.bot.db.remove_artist(artist)
+            return
 
-            relevant_artists = self.get_relevant_artists_for_release(newest_release, followed_artist.guild_id)
-            if relevant_artists is not None:
-                await self.notify_release(newest_release, relevant_artists, channel)
+        newest_release = await spotify.get_newest_release_by_artist(artist.id)
+        if newest_release is None:
+            return
+
+        relevant_artists = self.get_relevant_artists_for_release(newest_release, artist.guild_id)
+        if relevant_artists is not None:
+            await self.notify_release(newest_release, relevant_artists, channel)
 
     def get_relevant_artists_for_release(self, release, guild_id):
         relevant_artists = []
