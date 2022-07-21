@@ -31,18 +31,17 @@ async def get_artist_by_id(artist_id):
 async def get_newest_release_by_artist(artist_id):
     sp = spotify.Client(client_id, client_secret)
     try:
-        newest_album = (await sp.http.artist_albums(artist_id, limit=1, include_groups='album'))['items'][0]
-        if is_release_new(newest_album):
-            await sp.close()
-            return newest_album
-        newest_single = (await sp.http.artist_albums(artist_id, limit=1, include_groups='single'))['items'][0]
-        if is_release_new(newest_single):
-            tracks = await sp.http.album_tracks(newest_single['id'])
-            if len(tracks['items']) <= 1:
-                newest_single = tracks['items'][0]
-            await sp.close()
-            return newest_single
-        return None
+        newest_release = (await sp.http.artist_albums(artist_id, limit=1, include_groups='album'))['items'][0]
+        if not is_release_new(newest_release):
+            newest_release = (await sp.http.artist_albums(artist_id, limit=1, include_groups='single'))['items'][0]
+            if is_release_new(newest_release):
+                tracks = await sp.http.album_tracks(newest_release['id'])
+                if len(tracks['items']) <= 1:
+                    newest_release = tracks['items'][0]
+            else:
+                newest_release = None
+        await sp.close()
+        return newest_release
     except (JSONDecodeError, spotify.errors.NotFound, spotify.errors.BearerTokenError) as e:
         logging.exception(e)
         await sp.close()
