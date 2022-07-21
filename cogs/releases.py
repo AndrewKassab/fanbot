@@ -17,7 +17,6 @@ class ReleasesCog(commands.Cog):
     async def check_new_releases(self):
         logging.info('Checking for new releases')
         followed_artists = self.bot.db.get_all_artists()
-        spotify_artists = await spotify.get_artists_by_ids(list(set(a.id for a in followed_artists)))
         for followed_artist in followed_artists:
             guild = self.bot.get_guild(followed_artist.guild_id)
             if guild is None:
@@ -34,7 +33,7 @@ class ReleasesCog(commands.Cog):
                 self.bot.db.remove_artist(followed_artist)
                 continue
 
-            newest_release = await spotify.get_newest_release_by_artist(spotify_artists[followed_artist.id])
+            newest_release = await spotify.get_newest_release_by_artist(followed_artist.id)
             if newest_release is None:
                 continue
 

@@ -28,35 +28,14 @@ async def get_artist_by_id(artist_id):
         raise InvalidArtistException
 
 
-async def get_artists_by_ids(artist_ids):
-    if len(artist_ids) == 0 or artist_ids is None:
-        return []
-
-    sp = spotify.Client(client_id, client_secret)
-
-    ceiling = 0
-    start = 0
-    artists = []
-    while ceiling < len(artist_ids):
-        ceiling += 50
-        artists.extend(await sp.get_artists(','.join(artist_ids[start:ceiling])))
-        start = ceiling
-
-    artist_dict = {}
-    for artist in artists:
-        artist_dict[artist.id] = artist
-
-    return artist_dict
-
-
-async def get_newest_release_by_artist(artist):
+async def get_newest_release_by_artist(artist_id):
     sp = spotify.Client(client_id, client_secret)
     try:
-        newest_album = (await sp.http.artist_albums(artist.id, limit=1, include_groups='album'))['items'][0]
+        newest_album = (await sp.http.artist_albums(artist_id, limit=1, include_groups='album'))['items'][0]
         if is_release_new(newest_album):
             await sp.close()
             return newest_album
-        newest_single = (await sp.http.artist_albums(artist.id, limit=1, include_groups='single'))['items'][0]
+        newest_single = (await sp.http.artist_albums(artist_id, limit=1, include_groups='single'))['items'][0]
         if is_release_new(newest_single):
             tracks = await sp.http.album_tracks(newest_single['id'])
             if len(tracks['items']) <= 1:
