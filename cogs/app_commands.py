@@ -32,9 +32,8 @@ class AppCommandsCog(commands.Cog):
         description="Follow a spotify artist",
 
     )
-    #@app_commands.describe(artist_link="The artist's spotify share link")
     async def follow_artist(self, interaction: discord.Interaction, artist_link: str):
-        message = await interaction.response.send_message('Attempting to follow artist...')
+        await interaction.response.send_message('Attempting to follow artist...')
 
         if not self.bot.db.is_guild_in_db(interaction.guild_id):
             await interaction.edit_original_message(
@@ -55,8 +54,9 @@ class AppCommandsCog(commands.Cog):
                 self.bot.db.remove_artist(artist_in_db)
             else:
                 await interaction.edit_original_message(content='This server is already following %s! We\'ve assigned '
-                                           'you the corresponding role.' % artist_in_db.name)
-                await interaction.author.add_roles(role)
+                                                                'you the corresponding role.' % artist_in_db.name)
+                if isinstance(interaction.user, discord.Member):
+                    await interaction.user.add_roles(role)
                 return
 
         role = await interaction.guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'))
@@ -74,8 +74,9 @@ class AppCommandsCog(commands.Cog):
         await interaction.edit_original_message(
             content="<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
                     % (artist.role_id, artist.name))
-        await interaction.message.add_reaction(FOLLOW_ROLE_EMOJI)
-        await interaction.message.add_reaction(UNFOLLOW_ROLE_EMOJI)
+        message = await interaction.original_message()
+        await message.add_reaction(FOLLOW_ROLE_EMOJI)
+        await message.add_reaction(UNFOLLOW_ROLE_EMOJI)
         await message.author.add_roles(role)
 
     @app_commands.command(
