@@ -1,6 +1,7 @@
 from discord.ext import commands, tasks
 import logging
 from utils import spotify
+from utils.database import Artist
 from config.emojis import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI
 
 
@@ -20,7 +21,7 @@ class ReleasesCog(commands.Cog):
         for artist in followed_artists:
             await self.check_new_release_for_artist(artist)
 
-    async def check_new_release_for_artist(self, artist):
+    async def check_new_release_for_artist(self, artist: Artist):
         guild = self.bot.get_guild(artist.guild_id)
         if guild is None:
             self.bot.db.remove_guild(artist.guild_id)
