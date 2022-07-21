@@ -31,9 +31,9 @@ async def get_artist_by_id(artist_id):
 async def get_newest_release_by_artist(artist_id):
     sp = spotify.Client(client_id, client_secret)
     try:
-        newest_release = (await sp.http.artist_albums(artist_id, limit=1, include_groups='album'))['items'][0]
+        newest_release = (await sp.http.artist_albums(artist_id, limit=1, include_groups='album'))['items']
         if not is_release_new(newest_release):
-            newest_release = (await sp.http.artist_albums(artist_id, limit=1, include_groups='single'))['items'][0]
+            newest_release = (await sp.http.artist_albums(artist_id, limit=1, include_groups='single'))['items']
             if is_release_new(newest_release):
                 tracks = await sp.http.album_tracks(newest_release['id'])
                 if len(tracks['items']) <= 1:
@@ -41,7 +41,7 @@ async def get_newest_release_by_artist(artist_id):
             else:
                 newest_release = None
         await sp.close()
-        return newest_release
+        return newest_release[0] if newest_release else None
     except (JSONDecodeError, spotify.errors.NotFound, spotify.errors.BearerTokenError) as e:
         logging.exception(e)
         await sp.close()
@@ -49,12 +49,12 @@ async def get_newest_release_by_artist(artist_id):
 
 
 def is_release_new(release):
-    if release is None:
+    if release is None or len(release) == 0:
         return False
     curr_date = datetime.now(tz=pytz.utc).astimezone(pytz.timezone('US/Pacific'))
     today_string = curr_date.strftime('%Y-%m-%d')
     tomorrow_string = (curr_date + timedelta(days=1)).strftime('%Y-%m-%d')
-    if release['release_date'] == today_string or (release['release_date'] == tomorrow_string and
+    if release[0]['release_date'] == today_string or (release[0]['release_date'] == tomorrow_string and
                                                    curr_date.time() >= time(21, 0)):
         return True
     return False

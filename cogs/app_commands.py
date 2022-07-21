@@ -32,9 +32,9 @@ class AppCommandsCog(commands.Cog):
         description="Follow a spotify artist",
 
     )
-    @app_commands.describe(artist_link="The artist's spotify share link")
+    #@app_commands.describe(artist_link="The artist's spotify share link")
     async def follow_artist(self, interaction: discord.Interaction, artist_link: str):
-        await interaction.response.send_message('Attempting to follow artist...')
+        message = await interaction.response.send_message('Attempting to follow artist...')
 
         if not self.bot.db.is_guild_in_db(interaction.guild_id):
             await interaction.edit_original_message(
@@ -76,7 +76,7 @@ class AppCommandsCog(commands.Cog):
                     % (artist.role_id, artist.name))
         await interaction.message.add_reaction(FOLLOW_ROLE_EMOJI)
         await interaction.message.add_reaction(UNFOLLOW_ROLE_EMOJI)
-        await interaction.message.author.add_roles(role)
+        await message.author.add_roles(role)
 
     @app_commands.command(
         name=LIST_COMMAND,
