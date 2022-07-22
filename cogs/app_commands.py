@@ -38,6 +38,7 @@ class AppCommandsCog(commands.Cog):
             await interaction.edit_original_message(
                 content=f"You must first use `/{SET_COMMAND}` to configure a channel to send updates to.")
             return
+
         try:
             artist_id = extract_artist_id(artist_link)
             artist = await get_artist_by_id(artist_id)
@@ -76,7 +77,7 @@ class AppCommandsCog(commands.Cog):
         message = await interaction.original_message()
         await message.add_reaction(FOLLOW_ROLE_EMOJI)
         await message.add_reaction(UNFOLLOW_ROLE_EMOJI)
-        await message.author.add_roles(role)
+        await interaction.user.add_roles(role)
 
     @app_commands.command(
         name=LIST_COMMAND,
