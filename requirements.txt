@@ -1,5 +1,4 @@
-discord.py
-discord-py-slash-command
 mysql-connector-python~=8.0.29
 spotify~=0.10.2
 pytz~=2022.1
+git+https://github.com/Rapptz/discord.py

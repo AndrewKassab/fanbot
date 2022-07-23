@@ -1,14 +1,14 @@
 from discord.ext import commands, tasks
 import logging
 from utils import spotify
+from utils.database import Artist
 from config.emojis import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI
 
 
 class ReleasesCog(commands.Cog):
 
-    def __init__(self, bot, db):
+    def __init__(self, bot):
         self.bot = bot
-        self.db = db
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -17,44 +17,43 @@ class ReleasesCog(commands.Cog):
     @tasks.loop(minutes=10)
     async def check_new_releases(self):
         logging.info('Checking for new releases')
-        followed_artists = self.db.get_all_artists()
-        spotify_artists = await spotify.get_artists_by_ids(list(set(a.id for a in followed_artists)))
-        for followed_artist in followed_artists:
-            guild = self.bot.get_guild(followed_artist.guild_id)
-            if guild is None:
-                self.db.remove_guild(followed_artist.guild_id)
-                continue
+        followed_artists = self.bot.db.get_all_artists()
+        for artist in followed_artists:
+            await self.check_new_release_for_artist(artist)
 
-            channel_id = self.db.get_music_channel_id_for_guild_id(followed_artist.guild_id)
-            channel = guild.get_channel(channel_id)
-            if channel is None:
-                continue
+    async def check_new_release_for_artist(self, artist: Artist):
+        guild = self.bot.get_guild(artist.guild_id)
+        if guild is None:
+            self.bot.db.remove_guild(artist.guild_id)
+            return
 
-            artist_role = channel.guild.get_role(int(followed_artist.role_id))
-            if artist_role is None:
-                self.db.remove_artist(followed_artist)
-                continue
+        channel_id = self.bot.db.get_music_channel_id_for_guild_id(artist.guild_id)
+        channel = guild.get_channel(channel_id)
+        if channel is None:
+            return
 
-            newest_release = await spotify.get_newest_release_by_artist(spotify_artists[followed_artist.id])
-            if newest_release is None:
-                continue
+        artist_role = channel.guild.get_role(int(artist.role_id))
+        if artist_role is None:
+            self.bot.db.remove_artist(artist)
+            return
 
-            relevant_artists = self.get_relevant_artists_for_release(newest_release, followed_artist.guild_id)
-            if relevant_artists is not None:
-                await self.notify_release(newest_release, relevant_artists, channel)
+        newest_release = await spotify.get_newest_release_by_artist(artist.id)
+        if newest_release is None:
+            return
+
+        relevant_artists = self.get_relevant_artists_for_release(newest_release, artist.guild_id)
+        if relevant_artists is not None:
+            await self.notify_release(newest_release, relevant_artists, channel)
 
     def get_relevant_artists_for_release(self, release, guild_id):
         relevant_artists = []
-        all_newest_release_ids = []
-        all_newest_release_names = []
-        curr_guild_artists = self.db.get_all_artists_for_guild(guild_id)
+        curr_guild_artists = self.bot.db.get_all_artists_for_guild(guild_id)
         for artist in release['artists']:
-            if artist['id'] in curr_guild_artists.keys():
+            db_artist = curr_guild_artists.get(artist['id'])
+            if db_artist is not None:
+                if release['id'] == db_artist.latest_release_id or release['name'] == db_artist.latest_release_name:
+                    return None
                 relevant_artists.append(curr_guild_artists[artist['id']])
-                all_newest_release_ids.append(curr_guild_artists[artist['id']].latest_release_id)
-                all_newest_release_names.append(curr_guild_artists[artist['id']].latest_release_name)
-        if release['id'] in all_newest_release_ids or release['name'] in all_newest_release_names:
-            return None
         return relevant_artists
 
     async def notify_release(self, release, artists, channel):
@@ -67,4 +66,4 @@ class ReleasesCog(commands.Cog):
                                                     ":x:: Remove Role.\n%s" % (artists[0].role_id, release_url))
         await message.add_reaction(FOLLOW_ROLE_EMOJI)
         await message.add_reaction(UNFOLLOW_ROLE_EMOJI)
-        self.db.set_latest_release_for_artists(artists=artists, new_release_id=release['id'], new_release_name=release['name'])
+        self.bot.db.set_latest_release_for_artists(artists=artists, new_release_id=release['id'], new_release_name=release['name'])
