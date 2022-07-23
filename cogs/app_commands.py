@@ -67,9 +67,9 @@ class AppCommandsCog(commands.Cog):
         await interaction.user.add_roles(role)
 
     async def get_role_for_artist(self, artist):
-        artist_db = self.bot.get_artist_for_guild(artist.id, artist.guild_id)
+        artist_db = self.bot.db.get_artist_for_guild(artist.id, artist.guild_id)
         if artist_db is not None:
-            role = self.bot.get_guild(artist_db.id).get_role(artist_db .role_id)
+            role = self.bot.get_guild(artist_db.id).get_role(artist_db.role_id)
             if role is None:
                 self.bot.db.remove_artist()
                 role = await self.bot.get_guild(artist_db.guild_id).create_role(name=(artist_db.name.replace(" ", "") + 'Fan'))
