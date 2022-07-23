@@ -3,7 +3,9 @@ from utils.spotify import *
 from utils.database import MusicDatabase, Guild
 from discord.ext import commands
 from cogs.releases import ReleasesCog
-from cogs.app_commands import AppCommandsCog
+from cogs.configure import ConfigureCog
+from cogs.list import ListCog
+from cogs.follow import FollowCog
 import logging
 import discord
 
@@ -16,12 +18,13 @@ class FanBot(commands.Bot):
 
     async def setup_hook(self) -> None:
         await self.add_cog(ReleasesCog(self))
-        await self.add_cog(AppCommandsCog(self))
+        await self.add_cog(ConfigureCog(self))
+        await self.add_cog(ListCog(self))
+        await self.add_cog(FollowCog(self))
 
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s;%(levelname)s;%(message)s")
-
 
 bot = FanBot()
 
