@@ -2,11 +2,12 @@ import mysql.connector
 import os
 
 
-def get_connection(): return mysql.connector.connect( host='localhost',
-        user='fanbot',
-        password=os.environ.get('FANBOT_DB_PASSWORD'),
-        database='fanbot',
-    )
+def get_connection():
+    return mysql.connector.connect(host='localhost',
+                                   user='fanbot',
+                                   password=os.environ.get('FANBOT_DB_PASSWORD'),
+                                   database='fanbot',
+                                   )
 
 
 con = get_connection()
