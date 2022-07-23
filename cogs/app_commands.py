@@ -61,7 +61,7 @@ class AppCommandsCog(commands.Cog):
         except Exception as e:
             await interaction.edit_original_message(content="Failed to follow artist.")
             await role.delete()
-            logging.exception('Failure to follow artist and add to db: ', str(e))
+            logging.exception('Failure to follow artist and add to db: ', e.msg)
             return
 
         await interaction.user.add_roles(role)
