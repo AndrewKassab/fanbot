@@ -1,4 +1,4 @@
-# Fanbot **[(Invite to Server)](https://discord.com/api/oauth2/authorize?client_id=885000888131915799&permissions=8&scope=applications.commands%20bot)**
+# Fanbot **[(Invite to Server)](https://discord.com/api/oauth2/authorize?client_id=885000888131915799&permissions=34628258880&scope=bot%20applications.commands)**
 Fanbot is the ultimate music fanboy! Keep your discord server updated on releases from the spotify artists you love.   
 
 **Commands:** (Works with discord slash commands)
@@ -16,7 +16,7 @@ Use python 3.7 - 3.9, otherwise there will be unexpected behaviors when Spotify 
 1. Create an app on [Spotify](https://developer.spotify.com/dashboard/applications), copy over the client id and client secret.
 2. Create an app and bot on [Discord](https://discord.com/developers/applications) and add the bot to your test server.
 - Scopes: bot, applications.commands
-- Bot Permissions: 534992387136 (temporary until I figure out more precise permissions)
+- Bot Permissions:  Manage Roles, Read Messages/View Channels, Send Messages, Create Public Threads, Embed Links, Read Message History, Add Reactions
 
 **Environment Variables:**  
 - FANBOT_SPOTIFY_CLIENT_ID
