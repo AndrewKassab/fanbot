@@ -42,8 +42,8 @@ async def get_newest_release_by_artist(artist_id):
                 newest_release = None
         await sp.close()
         return newest_release[0] if newest_release else None
-    except (JSONDecodeError, spotify.errors.NotFound, spotify.errors.BearerTokenError) as e:
-        logging.exception(e.msg + ' for artist id: %s' % artist_id)
+    except (JSONDecodeError, spotify.errors.NotFound, spotify.errors.BearerTokenError):
+        logging.exception('exception for artist id: %s' % artist_id)
         await sp.close()
         return None
 
