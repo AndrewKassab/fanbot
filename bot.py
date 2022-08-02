@@ -45,8 +45,8 @@ async def on_raw_reaction_add(payload):
     guild = channel.guild
     member = payload.member
     reaction = payload.emoji
-    role_string = message.content.split()[0]
-    role_id = int(role_string[3:len(role_string) - 1])
+    role_string = message.content.split('>')[0]
+    role_id = int(role_string[3:])
     role = guild.get_role(role_id)
     if role is None:
         return
