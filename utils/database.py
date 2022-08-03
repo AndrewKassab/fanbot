@@ -21,12 +21,6 @@ class Guild:
         self.music_channel_id = music_channel_id
 
 
-class ArtistAlreadyExistsException(Exception):
-
-    def __init__(self):
-        super().__init__("Already following artist")
-
-
 class MusicDatabase:
 
     def __init__(self):

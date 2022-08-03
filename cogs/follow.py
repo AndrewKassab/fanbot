@@ -8,14 +8,14 @@ from discord import app_commands
 import discord
 
 
-class FollowCog(commands.Cog):
+class Follow(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
 
     @app_commands.command(
         name=FOLLOW_COMMAND,
-        description="Follow a spotify artist",
+        description="Follow a spotify artist by their spotify profile share link",
     )
     async def follow_artist(self, interaction: discord.Interaction, artist_link: str):
         await interaction.response.send_message('Attempting to follow artist...')

@@ -16,7 +16,7 @@ Use python 3.7 - 3.9, otherwise there will be unexpected behaviors when Spotify 
 1. Create an app on [Spotify](https://developer.spotify.com/dashboard/applications), copy over the client id and client secret.
 2. Create an app and bot on [Discord](https://discord.com/developers/applications) and add the bot to your test server.
 - Scopes: bot, applications.commands
-- Bot Permissions:  Manage Roles, Read Messages/View Channels, Send Messages, Create Public Threads, Embed Links, Read Message History, Add Reactions
+- Bot Permissions:  Manage Roles, Read Messages/View Channels, Send Messages, Embed Links, Read Message History, Add Reactions (268520512)
 
 **Environment Variables:**  
 - FANBOT_SPOTIFY_CLIENT_ID
