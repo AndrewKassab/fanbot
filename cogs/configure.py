@@ -28,4 +28,4 @@ class Configure(commands.Cog):
     @set_update_channel.error
     async def set_update_channel_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         if isinstance(error, app_commands.MissingPermissions):
-            interaction.response.send_message(content="Only Administrators can issue this command", ephemeral=True)
+            await interaction.response.send_message(content="Only Administrators can issue this command", ephemeral=True)
