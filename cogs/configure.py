@@ -14,6 +14,7 @@ class ConfigureCog(commands.Cog):
         name=SET_COMMAND,
         description="Set the current channel to the update channel",
     )
+    @app_commands.checks.has_permissions(administrator=True)
     async def set_update_channel(self, interaction: discord.Interaction):
         await interaction.response.send_message("Attempting to configure current channel for updates...")
         if not self.bot.db.is_guild_in_db(interaction.guild_id):

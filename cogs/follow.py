@@ -15,7 +15,7 @@ class FollowCog(commands.Cog):
 
     @app_commands.command(
         name=FOLLOW_COMMAND,
-        description="Follow a spotify artist",
+        description="Follow a spotify artist by their spotify profile share link",
     )
     async def follow_artist(self, interaction: discord.Interaction, artist_link: str):
         await interaction.response.send_message('Attempting to follow artist...')

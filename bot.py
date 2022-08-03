@@ -21,6 +21,7 @@ class FanBot(commands.Bot):
         await self.add_cog(ConfigureCog(self))
         await self.add_cog(ListCog(self))
         await self.add_cog(FollowCog(self))
+        await self.tree.sync()
 
 
 logging.basicConfig(level=logging.INFO,
