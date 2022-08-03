@@ -5,7 +5,7 @@ from discord import app_commands
 import discord
 
 
-class ConfigureCog(commands.Cog):
+class Configure(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
@@ -24,4 +24,3 @@ class ConfigureCog(commands.Cog):
         else:
             self.bot.db.update_guild_channel_id(interaction.guild_id, interaction.channel_id)
             await interaction.edit_original_message(content="Current channel successfully configured for updates.")
-

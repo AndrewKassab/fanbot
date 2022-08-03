@@ -1,11 +1,8 @@
 from config.emojis import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI
 from utils.spotify import *
-from utils.database import MusicDatabase, Guild
+from utils.database import MusicDatabase
 from discord.ext import commands
-from cogs.releases import ReleasesCog
-from cogs.configure import ConfigureCog
-from cogs.list import ListCog
-from cogs.follow import FollowCog
+import cogs
 import logging
 import discord
 
@@ -17,16 +14,15 @@ class FanBot(commands.Bot):
         self.db = MusicDatabase()
 
     async def setup_hook(self) -> None:
-        await self.add_cog(ReleasesCog(self))
-        await self.add_cog(ConfigureCog(self))
-        await self.add_cog(ListCog(self))
-        await self.add_cog(FollowCog(self))
+        await self.add_cog(cogs.releases.Releases(self))
+        await self.add_cog(cogs.configure.Configure(self))
+        await self.add_cog(cogs.list.List(self))
+        await self.add_cog(cogs.follow.Follow(self))
         await self.tree.sync()
 
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s;%(levelname)s;%(message)s")
-
 bot = FanBot()
 
 

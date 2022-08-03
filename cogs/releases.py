@@ -5,7 +5,7 @@ from utils.database import Artist
 from config.emojis import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI
 
 
-class ReleasesCog(commands.Cog):
+class Releases(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot

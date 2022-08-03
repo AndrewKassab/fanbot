@@ -8,7 +8,7 @@ from discord import app_commands
 import discord
 
 
-class FollowCog(commands.Cog):
+class Follow(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
