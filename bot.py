@@ -20,14 +20,13 @@ class FanBot(commands.Bot):
         await self.add_cog(cogs.Releases(self))
         await self.tree.sync()
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        logging.info('We have logged in as {0.user}'.format(bot))
+
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s;%(levelname)s;%(message)s")
+
 bot = FanBot()
-
-
-@bot.event
-async def on_ready():
-    logging.info('We have logged in as {0.user}'.format(bot))
-
 bot.run(os.environ.get('FANBOT_DISCORD_TOKEN'))
