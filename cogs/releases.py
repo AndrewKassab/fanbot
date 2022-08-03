@@ -57,7 +57,7 @@ class Releases(commands.Cog):
         return relevant_artists
 
     async def notify_release(self, release, artists, channel):
-        logging.info(f"Notifying a new release by {artists[0].name} {artists[0].id} to Guild {channel.guild.id}")
+        logging.info(f"Notifying a new release by {artists[0].name} to Guild {channel.guild.id}")
         release_url = release['url'] if 'url' in release.keys() else release['external_urls']['spotify']
         message_text = ""
         for i in range(1, len(artists)):
