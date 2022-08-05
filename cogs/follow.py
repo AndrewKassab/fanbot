@@ -57,16 +57,16 @@ class Follow(commands.Cog):
             role = self.bot.get_guild(artist_db.guild_id).get_role(artist_db.role_id)
             if role is None:
                 self.bot.db.remove_artist(artist)
-                role = await self.bot.get_guild(artist_db.guild_id).create_role(name=(artist_db.name.replace(" ", "") + 'Fan'))
+                role = await self.bot.get_guild(artist_db.guild_id).create_role(
+                    name=(artist_db.name.replace(" ", "") + 'Fan'))
         else:
             role = await self.bot.get_guild(artist.guild_id).create_role(name=(artist.name.replace(" ", "") + 'Fan'))
         return role
 
     async def send_successful_follow_message(self, artist, interaction):
         logging.info(f"Guild {interaction.guild_id} has followed a new artist: {artist.name} {artist.id}")
-        await interaction.channel.send_message(
+        message = await self.bot.get_channel(interaction.channel_id).send(
             content="<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
                     % (artist.role_id, artist.name))
-        message = await interaction.original_message()
         await message.add_reaction(FOLLOW_ROLE_EMOJI)
         await message.add_reaction(UNFOLLOW_ROLE_EMOJI)
