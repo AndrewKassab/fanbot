@@ -12,11 +12,11 @@ class Configure(commands.Cog):
 
     @app_commands.command(
         name=SET_COMMAND,
-        description="Set the current channel to the update channel",
+        description="Admins: Sets the current channel to the update channel",
     )
     @app_commands.checks.has_permissions(administrator=True)
     async def set_update_channel(self, interaction: discord.Interaction):
-        await interaction.response.send_message("Attempting to configure current channel for updates...")
+        await interaction.response.send_message("Attempting to configure current channel for updates...", ephemeral=True)
         if not self.bot.db.is_guild_in_db(interaction.guild_id):
             self.bot.db.add_guild(Guild(interaction.guild_id, interaction.channel_id))
             await interaction.edit_original_message(content="Channel successfully configured for updates. You "
