@@ -18,11 +18,11 @@ class Follow(commands.Cog):
         description="Follow a spotify artist by their spotify profile share link",
     )
     async def follow_artist(self, interaction: discord.Interaction, artist_link: str):
-        await interaction.response.send_message('Attempting to follow artist...')
+        await interaction.response.send_message('Attempting to follow artist...', ephemeral=True)
 
         if not self.bot.db.is_guild_in_db(interaction.guild_id):
             await interaction.edit_original_message(
-                content=f"You must first use `/{SET_COMMAND}` to configure a channel to send updates to.")
+                content=f"A server admin must first use `/{SET_COMMAND}` to configure a channel to send updates to.")
             return
 
         try:
@@ -46,7 +46,7 @@ class Follow(commands.Cog):
         except Exception as e:
             await interaction.edit_original_message(content="Failed to follow artist.")
             await role.delete()
-            logging.exception('Failure to follow artist and add to db: ', e.msg)
+            logging.exception('Failure to follow artist and add to db.')
             return
 
         await interaction.user.add_roles(role)
@@ -57,16 +57,16 @@ class Follow(commands.Cog):
             role = self.bot.get_guild(artist_db.guild_id).get_role(artist_db.role_id)
             if role is None:
                 self.bot.db.remove_artist(artist)
-                role = await self.bot.get_guild(artist_db.guild_id).create_role(name=(artist_db.name.replace(" ", "") + 'Fan'))
+                role = await self.bot.get_guild(artist_db.guild_id).create_role(
+                    name=(artist_db.name.replace(" ", "") + 'Fan'))
         else:
             role = await self.bot.get_guild(artist.guild_id).create_role(name=(artist.name.replace(" ", "") + 'Fan'))
         return role
 
     async def send_successful_follow_message(self, artist, interaction):
         logging.info(f"Guild {interaction.guild_id} has followed a new artist: {artist.name} {artist.id}")
-        await interaction.edit_original_message(
+        message = await self.bot.get_channel(interaction.channel_id).send(
             content="<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
                     % (artist.role_id, artist.name))
-        message = await interaction.original_message()
         await message.add_reaction(FOLLOW_ROLE_EMOJI)
         await message.add_reaction(UNFOLLOW_ROLE_EMOJI)
