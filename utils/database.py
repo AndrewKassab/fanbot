@@ -5,7 +5,8 @@ from collections import defaultdict
 
 class Artist:
 
-    def __init__(self, name, artist_id, guild_id=None, latest_release_id=None, latest_release_name=None, role_id=None):
+    def __init__(self, name, artist_id: str, guild_id: int = None, latest_release_id: str = None,
+                 latest_release_name=None, role_id: int = None):
         self.id = artist_id
         self.name = name
         self.role_id = role_id
@@ -49,13 +50,14 @@ class MusicDatabase:
         con.close()
         return guilds_dict
 
+    # TODO: Remove int conversion once DB is fixed
     def get_all_guilds_to_artists(self):
         con = self.get_connection()
         cur = con.cursor()
         cur.execute("SELECT * FROM Artists")
         rows = cur.fetchall()
-        all_artists = [Artist(name=row[2], artist_id=row[1], role_id=row[3], latest_release_id=row[4],
-                              latest_release_name=row[5], guild_id=row[6]) for row in rows]
+        all_artists = [Artist(name=row[2], artist_id=row[1], role_id=int(row[3]), latest_release_id=row[4],
+                              latest_release_name=row[5], guild_id=int(row[6])) for row in rows]
         artists_dict = defaultdict(dict)
         for artist in all_artists:
             artists_dict[artist.guild_id][artist.id] = artist
