@@ -24,14 +24,42 @@ class List(commands.Cog):
         view = View()
         view.add_item(select)
 
-        async def toggle_role(ctx):
+        async def toggle_role(ctx: discord.Interaction):
             roles = []
             guild = self.bot.get_guild(ctx.guild_id)
             for value in select.values:
                 roles.append(guild.get_role(int(value)))
-            await ctx.user.add_roles(*roles)
-            await ctx.response.send_message("Roles have been added.")
+            roles_to_add = []
+            roles_to_remove = []
+            for role in roles:
+                if ctx.user.get_role(role.id):
+                    roles_to_remove.append(role)
+                else:
+                    roles_to_add.append(role)
+            response_message = ""
+            if len(roles_to_add) > 0:
+                response_message += self.get_roles_added_string(roles_to_add)
+                await ctx.user.add_roles(*roles_to_add)
+            if len(roles_to_remove) > 0:
+                response_message += self.get_roles_removed_string(roles_to_remove)
+                await ctx.user.remove_roles(*roles_to_remove)
+            await ctx.response.send_message(response_message)
 
         select.callback = toggle_role
         await interaction.response.send_message(view=view, ephemeral=True)
+
+    def get_roles_added_string(self, roles):
+        msg = "Roles added:"
+        for i in range(len(roles)-1):
+            msg += f" {roles[i].name},"
+        msg += f" {roles[-1].name}\n"
+        return msg
+
+    def get_roles_removed_string(self, roles):
+        msg = "Roles removed:"
+        for i in range(len(roles)-1):
+            msg += f" {roles[i].name},"
+        msg += f" {roles[-1].name}"
+        return msg
+
 
