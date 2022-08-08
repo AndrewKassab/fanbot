@@ -19,13 +19,18 @@ class List(commands.Cog):
         select_options = []
         for artist in artists.values():
             select_options.append(discord.SelectOption(label=artist.name, value=artist.role_id))
-        select = Select(placeholder="Select an artist", options=select_options)
+        max_values = len(select_options) if len(select_options) < 25 else 25
+        select = Select(placeholder="Select an artist", options=select_options, max_values=max_values)
         view = View()
         view.add_item(select)
 
         async def toggle_role(ctx):
-            role = self.bot.get_guild(ctx.guild_id).get_role(select.values[0])
-            await ctx.user.add_roles(role)
+            roles = []
+            guild = self.bot.get_guild(ctx.guild_id)
+            for value in select.values:
+                roles.append(guild.get_role(int(value)))
+            await ctx.user.add_roles(*roles)
+            await ctx.response.send_message("Roles added", ephemeral=True)
 
         select.callback = toggle_role
         await interaction.response.send_message(view=view, ephemeral=True)
