@@ -30,7 +30,7 @@ class List(commands.Cog):
             for value in select.values:
                 roles.append(guild.get_role(int(value)))
             await ctx.user.add_roles(*roles)
-            await ctx.response.send_message("Roles added", ephemeral=True)
+            await ctx.response.send_message("Roles have been added.")
 
         select.callback = toggle_role
         await interaction.response.send_message(view=view, ephemeral=True)
