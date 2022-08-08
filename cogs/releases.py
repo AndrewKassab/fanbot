@@ -2,7 +2,6 @@ from discord.ext import commands, tasks
 import logging
 from utils import spotify
 from utils.database import Artist
-from config.emojis import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI
 
 
 class Releases(commands.Cog):
