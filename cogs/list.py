@@ -43,10 +43,11 @@ class List(commands.Cog):
             if len(roles_to_remove) > 0:
                 response_message += self.get_roles_removed_string(roles_to_remove)
                 await ctx.user.remove_roles(*roles_to_remove)
-            await ctx.response.send_message(response_message)
+            await ctx.response.defer()
+            await interaction.edit_original_message(content=response_message)
 
         select.callback = toggle_roles
-        await interaction.response.send_message(view=view, ephemeral=True)
+        await interaction.response.send_message(content="Select a role to either add or remove it.", view=view, ephemeral=True)
 
     def get_roles_added_string(self, roles):
         msg = "Roles added:"
