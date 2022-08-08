@@ -24,7 +24,7 @@ class List(commands.Cog):
         view = View()
         view.add_item(select)
 
-        async def toggle_role(ctx: discord.Interaction):
+        async def toggle_roles(ctx: discord.Interaction):
             roles = []
             guild = self.bot.get_guild(ctx.guild_id)
             for value in select.values:
@@ -45,7 +45,7 @@ class List(commands.Cog):
                 await ctx.user.remove_roles(*roles_to_remove)
             await ctx.response.send_message(response_message)
 
-        select.callback = toggle_role
+        select.callback = toggle_roles
         await interaction.response.send_message(view=view, ephemeral=True)
 
     def get_roles_added_string(self, roles):
