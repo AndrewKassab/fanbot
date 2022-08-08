@@ -2,7 +2,6 @@ from discord.ext import commands, tasks
 import logging
 from utils import spotify
 from utils.database import Artist
-from config.emojis import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI
 
 
 class Releases(commands.Cog):
@@ -32,7 +31,7 @@ class Releases(commands.Cog):
         if channel is None:
             return
 
-        artist_role = channel.guild.get_role(int(artist.role_id))
+        artist_role = channel.guild.get_role(artist.role_id)
         if artist_role is None:
             self.bot.db.remove_artist(artist)
             return
@@ -62,8 +61,5 @@ class Releases(commands.Cog):
         message_text = ""
         for i in range(1, len(artists)):
             message_text += '<@&%s>, ' % artists[i].role_id
-        message = await channel.send(message_text + "<@&%s> New Release!\n:white_check_mark:: Assign Role."
-                                                    ":x:: Remove Role.\n%s" % (artists[0].role_id, release_url))
-        await message.add_reaction(FOLLOW_ROLE_EMOJI)
-        await message.add_reaction(UNFOLLOW_ROLE_EMOJI)
-        self.bot.db.set_latest_release_for_artists(artists=artists, new_release_id=release['id'], new_release_name=release['name'])
+        await channel.send(message_text + "<@&%s> New Release!\n%s" % (artists[0].role_id, release_url))
+        self.bot.db.set_latest_release_for_artists(artists, release['id'], release['name'])
