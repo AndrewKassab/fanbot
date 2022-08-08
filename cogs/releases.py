@@ -31,7 +31,7 @@ class Releases(commands.Cog):
         if channel is None:
             return
 
-        artist_role = channel.guild.get_role(int(artist.role_id))
+        artist_role = channel.guild.get_role(artist.role_id)
         if artist_role is None:
             self.bot.db.remove_artist(artist)
             return
