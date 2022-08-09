@@ -2,11 +2,10 @@ from config.commands import *
 from discord.ext import commands
 from discord import app_commands
 from discord.ui import Select, View, Button
-from config.emojis import NEXT_PAGE_EMOJI, PREV_PAGE_EMOJI
 from utils.database import Artist
 import discord
 
-DEF_MSG = "Select a role to add or remove it."
+DEF_MSG = "Select a role to add or remove it. "
 
 
 class List(commands.Cog):
@@ -22,7 +21,8 @@ class List(commands.Cog):
         artists = self.bot.db.get_all_artists_for_guild(guild_id=interaction.guild_id).values()
         artists = sorted(artists, key=lambda x: x.name)
         guild = self.bot.get_guild(interaction.guild_id)
-        await interaction.response.send_message(content=DEF_MSG, view=RoleAssignView(artists, guild), ephemeral=True)
+        await interaction.response.send_message(content=DEF_MSG + f"Page: 1", view=RoleAssignView(artists, guild),
+                                                ephemeral=True)
 
 
 class RoleAssignView(View):
@@ -42,8 +42,8 @@ class RoleAssignView(View):
         self.add_item(self.select)
 
         if len(self.select_options) > 25:
-            self.next_button = Button(emoji=NEXT_PAGE_EMOJI)
-            self.prev_button = Button(emoji=PREV_PAGE_EMOJI)
+            self.next_button = Button(label="Next (2)", style=discord.ButtonStyle.blurple)
+            self.prev_button = Button(label="Prev", style=discord.ButtonStyle.blurple)
             self.next_button.callback = self.page_next
             self.prev_button.callback = self.page_prev
             self.add_item(self.next_button)
@@ -74,6 +74,8 @@ class RoleAssignView(View):
         self.offset += 25
         self.select.options = self.select_options[self.offset:self.offset+25]
         self.select.max_values = len(self.select.options)
+        self.prev_button.label = f"Prev ({self.page-1})"
+        self.next_button.label = f"Next ({self.page+1})"
         if self.offset == 25:
             self.remove_item(self.next_button)
             self.add_item(self.prev_button)
@@ -81,7 +83,7 @@ class RoleAssignView(View):
         if self.offset + 25 > len(self.select_options):
             self.remove_item(self.next_button)
         await interaction.response.defer()
-        await interaction.edit_original_message(content=DEF_MSG, view=self)
+        await interaction.edit_original_message(content=DEF_MSG + f"Page: {self.page}", view=self)
 
     async def page_prev(self, interaction: discord.Interaction):
         self.page -= 1
@@ -90,10 +92,12 @@ class RoleAssignView(View):
             self.remove_item(self.prev_button)
         self.select.options = self.select_options[self.offset:self.offset+25]
         self.select.max_values = 25
+        self.prev_button.label = f"Prev ({self.page-1})"
+        self.next_button.label = f"Next ({self.page+1})"
         self.remove_item(self.next_button)
         self.add_item(self.next_button)
         await interaction.response.defer()
-        await interaction.edit_original_message(content=DEF_MSG, view=self)
+        await interaction.edit_original_message(content=DEF_MSG + f"Page: {self.page}", view=self)
 
     def get_roles_added_string(self, roles):
         msg = "Roles added:"
