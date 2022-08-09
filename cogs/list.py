@@ -1,7 +1,8 @@
 from config.commands import *
 from discord.ext import commands
 from discord import app_commands
-from discord.ui import Select, View
+from discord.ui import Select, View, Button
+from utils.database import Artist
 import discord
 
 
@@ -15,39 +16,47 @@ class List(commands.Cog):
         description="list followed artists and self-assign roles",
     )
     async def list_follows(self, interaction: discord.Interaction):
-        artists = self.bot.db.get_all_artists_for_guild(guild_id=interaction.guild_id)
-        select_options = []
-        for artist in artists.values():
-            select_options.append(discord.SelectOption(label=artist.name, value=artist.role_id))
-        max_values = len(select_options) if len(select_options) < 25 else 25
-        select = Select(placeholder="Select an artist", options=select_options, max_values=max_values)
-        view = View()
-        view.add_item(select)
+        artists = self.bot.db.get_all_artists_for_guild(guild_id=interaction.guild_id).values()
+        artists = sorted(artists, key=lambda x: x.name)
+        guild = self.bot.get_guild(interaction.guild_id)
+        await interaction.response.send_message(content="Select a role to add or remove it.",
+                                                view=RoleAssignView(artists, guild), ephemeral=True)
 
-        async def toggle_roles(ctx: discord.Interaction):
-            roles = []
-            guild = self.bot.get_guild(ctx.guild_id)
-            for value in select.values:
-                roles.append(guild.get_role(int(value)))
-            roles_to_add = []
-            roles_to_remove = []
-            for role in roles:
-                if ctx.user.get_role(role.id):
-                    roles_to_remove.append(role)
-                else:
-                    roles_to_add.append(role)
-            response_message = ""
-            if len(roles_to_add) > 0:
-                response_message += self.get_roles_added_string(roles_to_add)
-                await ctx.user.add_roles(*roles_to_add)
-            if len(roles_to_remove) > 0:
-                response_message += self.get_roles_removed_string(roles_to_remove)
-                await ctx.user.remove_roles(*roles_to_remove)
-            await ctx.response.defer()
-            await interaction.edit_original_message(content=response_message)
 
-        select.callback = toggle_roles
-        await interaction.response.send_message(content="Select a role to either add or remove it.", view=view, ephemeral=True)
+class RoleAssignView(View):
+
+    def __init__(self, artists: [Artist], guild: discord.Guild)
+        super().__init__(timeout=None)
+        self.offset = 25
+        self.select_options = []
+        self.guild = guild
+        for artist in artists:
+            self.select_options.append(discord.SelectOption(label=artist.name, value=artist.role_id))
+        max_values = len(self.select_options) if len(self.select_options) < 25 else 25
+        self.select = Select(placeholder="Select an artist", options=self.select_options[:25], max_values=max_values)
+        self.select.callback = self.toggle_roles
+        self.add_item(self.select)
+
+    async def toggle_roles(self, interaction: discord.Interaction):
+        roles = []
+        for value in self.select.values:
+            roles.append(self.guild.get_role(int(value)))
+        roles_to_add = []
+        roles_to_remove = []
+        for role in roles:
+            if interaction.user.get_role(role.id):
+                roles_to_remove.append(role)
+            else:
+                roles_to_add.append(role)
+        response_message = ""
+        if len(roles_to_add) > 0:
+            response_message += self.get_roles_added_string(roles_to_add)
+            await interaction.user.add_roles(*roles_to_add)
+        if len(roles_to_remove) > 0:
+            response_message += self.get_roles_removed_string(roles_to_remove)
+            await interaction.user.remove_roles(*roles_to_remove)
+        await interaction.response.defer()
+        await interaction.edit_original_message(content=response_message)
 
     def get_roles_added_string(self, roles):
         msg = "Roles added:"
