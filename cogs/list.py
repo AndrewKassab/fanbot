@@ -27,7 +27,7 @@ class RoleAssignView(View):
 
     def __init__(self, artists: [Artist], guild: discord.Guild):
         super().__init__(timeout=None)
-        self.offset = 25
+        self.offset = 0
         self.select_options = []
         self.guild = guild
         for artist in artists:
@@ -67,19 +67,26 @@ class RoleAssignView(View):
         await interaction.edit_original_message(content=response_message)
 
     async def page_next(self, interaction: discord.Interaction):
+        self.offset += 25
+        self.select.options = self.select_options[self.offset:self.offset+25]
+        self.select.max_values = len(self.select.options)
         if self.offset == 25:
             self.remove_item(self.next_button)
             self.add_item(self.prev_button)
-        self.select.options = self.select_options[self.offset:]
-        self.select.max_values = len(self.select.options)
-        self.offset += 25
-        if self.offset < len(self.select_options):
             self.add_item(self.next_button)
+        if self.offset + 25 > len(self.select_options):
+            self.remove_item(self.next_button)
         await interaction.response.defer()
         await interaction.edit_original_message(view=self)
 
     async def page_prev(self, interaction: discord.Interaction):
-
+        self.offset -= 25
+        if self.offset == 0:
+            self.remove_item(self.prev_button)
+        self.select.options = self.select_options[self.offset:self.offset+25]
+        self.select.max_values = 25
+        self.remove_item(self.next_button)
+        self.add_item(self.next_button)
         await interaction.response.defer()
         await interaction.edit_original_message(view=self)
 
