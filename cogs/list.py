@@ -12,7 +12,7 @@ class List(commands.Cog):
 
     @app_commands.command(
         name=LIST_COMMAND,
-        description="list followed artists",
+        description="list followed artists and self-assign roles",
     )
     async def list_follows(self, interaction: discord.Interaction):
         artists = self.bot.db.get_all_artists_for_guild(guild_id=interaction.guild_id)
