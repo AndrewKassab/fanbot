@@ -25,7 +25,7 @@ class List(commands.Cog):
 
 class RoleAssignView(View):
 
-    def __init__(self, artists: [Artist], guild: discord.Guild)
+    def __init__(self, artists: [Artist], guild: discord.Guild):
         super().__init__(timeout=None)
         self.offset = 25
         self.select_options = []
@@ -33,9 +33,17 @@ class RoleAssignView(View):
         for artist in artists:
             self.select_options.append(discord.SelectOption(label=artist.name, value=artist.role_id))
         max_values = len(self.select_options) if len(self.select_options) < 25 else 25
+
         self.select = Select(placeholder="Select an artist", options=self.select_options[:25], max_values=max_values)
         self.select.callback = self.toggle_roles
         self.add_item(self.select)
+
+        if len(self.select_options) > 25:
+            self.next_button = Button(label="Next", style=discord.ButtonStyle.green)
+            self.prev_button = Button(label="Prev", style=discord.ButtonStyle.red)
+            self.next_button.callback = self.page_next
+            self.prev_button.callback = self.page_prev
+            self.add_item(self.next_button)
 
     async def toggle_roles(self, interaction: discord.Interaction):
         roles = []
@@ -57,6 +65,23 @@ class RoleAssignView(View):
             await interaction.user.remove_roles(*roles_to_remove)
         await interaction.response.defer()
         await interaction.edit_original_message(content=response_message)
+
+    async def page_next(self, interaction: discord.Interaction):
+        if self.offset == 25:
+            self.remove_item(self.next_button)
+            self.add_item(self.prev_button)
+        self.select.options = self.select_options[self.offset:]
+        self.select.max_values = len(self.select.options)
+        self.offset += 25
+        if self.offset < len(self.select_options):
+            self.add_item(self.next_button)
+        await interaction.response.defer()
+        await interaction.edit_original_message(view=self)
+
+    async def page_prev(self, interaction: discord.Interaction):
+
+        await interaction.response.defer()
+        await interaction.edit_original_message(view=self)
 
     def get_roles_added_string(self, roles):
         msg = "Roles added:"
