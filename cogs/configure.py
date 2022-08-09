@@ -12,7 +12,7 @@ class Configure(commands.Cog):
 
     @app_commands.command(
         name=SET_COMMAND,
-        description="Admins: Sets the current channel to the update channel",
+        description="Admins: Sets the current channel to the update channel where new releases will be sent.",
     )
     @app_commands.checks.has_permissions(administrator=True)
     async def set_update_channel(self, interaction: discord.Interaction):
