@@ -1,9 +1,9 @@
-from config.commands import *
 from discord.ext import commands
 from discord import app_commands
 from discord.ui import Select, View, Button
 from utils.database import Artist
 import discord
+from settings import LIST_COMMAND
 
 DEF_MSG = "Select a role to add or remove it. "
 

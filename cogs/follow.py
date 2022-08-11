@@ -1,11 +1,10 @@
-from config.emojis import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI
-from config.commands import *
 from utils.spotify import *
 from discord.ext import commands
 from mysql.connector.errors import IntegrityError
 import logging
 from discord import app_commands
 import discord
+from settings import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI, FOLLOW_COMMAND, SET_COMMAND
 
 
 class Follow(commands.Cog):

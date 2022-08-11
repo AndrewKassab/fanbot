@@ -1,9 +1,9 @@
-from utils.spotify import *
 from utils.database import MusicDatabase
 from discord.ext import commands
 import cogs
 import logging
 import discord
+from settings import DISCORD_TOKEN
 
 
 class FanBot(commands.Bot):
@@ -29,4 +29,4 @@ logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s;%(levelname)s;%(message)s")
 
 bot = FanBot()
-bot.run(os.environ.get('FANBOT_DISCORD_TOKEN'))
+bot.run(DISCORD_TOKEN)
