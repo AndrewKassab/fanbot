@@ -1,7 +1,7 @@
 from utils.database import Guild
 from discord.ext import commands
 from discord import app_commands
-from settings import SET_COMMAND, FOLLOW_COMMAND
+from settings import SET_COMMAND, FOLLOW_COMMAND, HELP_COMMAND, HELP_MESSAGE
 import discord
 
 
@@ -24,6 +24,14 @@ class Configure(commands.Cog):
         else:
             self.bot.db.update_guild_channel_id(interaction.guild_id, interaction.channel_id)
             await interaction.edit_original_message(content="Current channel successfully configured for updates.")
+
+    @app_commands.command(
+        name=HELP_COMMAND,
+        description="How to use fanbot"
+    )
+    async def send_help(self, interaction: discord.Interaction):
+        await interaction.response.send_message(HELP_MESSAGE, ephemeral=True)
+
 
     @set_update_channel.error
     async def set_update_channel_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
