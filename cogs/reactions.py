@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from config.emojis import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI
+from settings import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI
 
 
 class Reactions(commands.Cog):

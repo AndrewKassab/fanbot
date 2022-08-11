@@ -1,7 +1,7 @@
-from config.commands import *
 from utils.database import Guild
 from discord.ext import commands
 from discord import app_commands
+from settings import SET_COMMAND
 import discord
 
 

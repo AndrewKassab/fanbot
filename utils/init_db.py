@@ -3,10 +3,10 @@ import os
 
 
 def get_connection():
-    return mysql.connector.connect(host='localhost',
-                                   user='fanbot',
+    return mysql.connector.connect(host=os.environ.get('FANBOT_DB_HOST'),
+                                   user=os.environ.get('FANBOT_DB_USER'),
                                    password=os.environ.get('FANBOT_DB_PASSWORD'),
-                                   database='fanbot',
+                                   database=os.environ.get('FANBOT_DB_NAME'),
                                    )
 
 

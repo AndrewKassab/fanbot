@@ -1,6 +1,5 @@
-import os
-import mysql.connector
 from collections import defaultdict
+from settings import DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, db
 
 
 class Artist:
@@ -25,17 +24,17 @@ class Guild:
 class MusicDatabase:
 
     def __init__(self):
-        self.db = mysql.connector
+        self.db = db
         # Populate cache
         self.guilds = self.get_all_guilds()
         self.guild_to_artists = self.get_all_guilds_to_artists()
 
     def get_connection(self):
         return self.db.connect(
-            host='localhost',
-            user='fanbot',
-            password=os.environ.get('FANBOT_DB_PASSWORD'),
-            database='fanbot',
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            database=DB_NAME
         )
 
     def get_all_guilds(self):
