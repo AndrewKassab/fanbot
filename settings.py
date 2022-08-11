@@ -19,7 +19,7 @@ DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
 # Slash Command names
 SET_COMMAND = "setchannel"
 FOLLOW_COMMAND = "follow"
-LIST_COMMAND = "listfollow"
+LIST_COMMAND = "listroles"
 
 # Emojis
 FOLLOW_ROLE_EMOJI = '✅'
