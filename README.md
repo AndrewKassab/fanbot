@@ -19,7 +19,7 @@ Create an app and bot on [Discord](https://discord.com/developers/applications) 
 - Scopes: bot, applications.commands  
 - Bot Permissions:  Manage Roles, Read Messages/View Channels, Send Messages, Embed Links, Read Message History, Add Reactions (268520512)
 
-Create a database, the default is mysql but database.py can be updated for development.  
+Create a database, the default is mysql.connector, but can be configured through `settings.py`
 
 **Environment Variables:**  
  
