@@ -1,12 +1,13 @@
 import mysql.connector
 import os
+from settings import DB_USER, DB_NAME, DB_HOST, DB_PASSWORD
 
 
 def get_connection():
-    return mysql.connector.connect(host=os.environ.get('FANBOT_DB_HOST'),
-                                   user=os.environ.get('FANBOT_DB_USER'),
-                                   password=os.environ.get('FANBOT_DB_PASSWORD'),
-                                   database=os.environ.get('FANBOT_DB_NAME'),
+    return mysql.connector.connect(host=DB_HOST,
+                                   user=DB_USER,
+                                   password=DB_PASSWORD,
+                                   database=DB_NAME,
                                    )
 
 
