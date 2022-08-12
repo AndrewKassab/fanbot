@@ -1,10 +1,10 @@
-import os
 from datetime import datetime, timedelta, time
 import pytz
 from utils.database import Artist
 import spotify
 from json import JSONDecodeError
 import logging
+from settings import SP_CLIENT_ID, SP_CLIENT_SECRET
 
 
 class InvalidArtistException(Exception):
@@ -13,8 +13,8 @@ class InvalidArtistException(Exception):
         super().__init__("Artist not found or invalid")
 
 
-client_id = os.getenv('FANBOT_SPOTIFY_CLIENT_ID')
-client_secret = os.getenv('FANBOT_SPOTIFY_CLIENT_SECRET')
+client_id = SP_CLIENT_ID
+client_secret = SP_CLIENT_SECRET
 
 
 async def get_artist_by_id(artist_id):
