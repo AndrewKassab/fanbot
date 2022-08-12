@@ -29,5 +29,5 @@ jobs:
       run: |
         python -m unittest discover ./tests
       env:
-        MUSIC_BOT_CLIENT_ID: ${{secrets.CLIENT_ID}}
-        MUSIC_BOT_CLIENT_SECRET: ${{secrets.CLIENT_SECRET}}
+        SP_CLIENT_ID: ${{secrets.CLIENT_ID}}
+        SP_CLIENT_SECRET: ${{secrets.CLIENT_SECRET}}

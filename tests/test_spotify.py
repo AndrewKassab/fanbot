@@ -18,6 +18,21 @@ class TestSpotify(unittest.TestCase):
         if newest_release:
             self.assertTrue(newest_release['release_date'] == curr_date)
 
+    def test_new_release_is_new(self):
+        curr_date = datetime.now(tz=pytz.utc).astimezone(pytz.timezone('US/Pacific'))
+        new_release = {
+            'release_date': curr_date.strftime('%Y-%m-%d')
+        }
+        self.assertTrue(is_release_new(new_release))
+
+    def test_old_release_is_not_new(self):
+        curr_date = datetime.now(tz=pytz.utc).astimezone(pytz.timezone('US/Pacific'))
+        old_string = (curr_date - timedelta(days=2)).strftime('%Y-%m-%d')
+        old_release = {
+            'release_date': old_string
+        }
+        self.assertFalse(is_release_new(old_release))
+
 
 if __name__ == '__main__':
     unittest.main()
