@@ -62,12 +62,6 @@ def is_release_new(release):
     return False
 
 
-def convert_album_to_dict(album):
-    for i in range(len(album.artists)):
-        album.artists[i] = album.artists[i].__dict__
-    return album.__dict__
-
-
 def extract_artist_id(artist_link):
     if len(artist_link) < 54:
         raise InvalidArtistException
