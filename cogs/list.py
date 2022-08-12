@@ -5,7 +5,7 @@ from utils.database import Artist
 import discord
 from settings import LIST_COMMAND
 
-DEF_MSG = "Select a role to add or remove it. "
+DEF_MSG = "Select a role to add or remove it. Page: "
 
 
 class List(commands.Cog):
@@ -21,7 +21,7 @@ class List(commands.Cog):
         artists = self.bot.db.get_all_artists_for_guild(guild_id=interaction.guild_id).values()
         artists = sorted(artists, key=lambda x: x.name)
         guild = self.bot.get_guild(interaction.guild_id)
-        await interaction.response.send_message(content=DEF_MSG + f"Page: 1", view=RoleAssignView(artists, guild),
+        await interaction.response.send_message(content=DEF_MSG + '1', view=RoleAssignView(artists, guild),
                                                 ephemeral=True)
 
 
@@ -83,7 +83,7 @@ class RoleAssignView(View):
         if self.offset + 25 > len(self.select_options):
             self.remove_item(self.next_button)
         await interaction.response.defer()
-        await interaction.edit_original_message(content=DEF_MSG + f"Page: {self.page}", view=self)
+        await interaction.edit_original_message(content=DEF_MSG + f"{self.page}", view=self)
 
     async def page_prev(self, interaction: discord.Interaction):
         self.page -= 1
@@ -97,7 +97,7 @@ class RoleAssignView(View):
         self.remove_item(self.next_button)
         self.add_item(self.next_button)
         await interaction.response.defer()
-        await interaction.edit_original_message(content=DEF_MSG + f"Page: {self.page}", view=self)
+        await interaction.edit_original_message(content=DEF_MSG + f"{self.page}", view=self)
 
     def get_roles_added_string(self, roles):
         msg = "Roles added:"
