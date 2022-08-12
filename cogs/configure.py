@@ -32,7 +32,6 @@ class Configure(commands.Cog):
     async def send_help(self, interaction: discord.Interaction):
         await interaction.response.send_message(HELP_MESSAGE, ephemeral=True)
 
-
     @set_update_channel.error
     async def set_update_channel_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         if isinstance(error, app_commands.MissingPermissions):
