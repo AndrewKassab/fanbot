@@ -57,9 +57,10 @@ class Follow(commands.Cog):
             if role is None:
                 self.bot.db.remove_artist(artist)
                 role = await self.bot.get_guild(artist_db.guild_id).create_role(
-                    name=(artist_db.name.replace(" ", "") + 'Fan'))
+                    name=(artist_db.name.replace(" ", "") + 'Fan'), mentionable=True)
         else:
-            role = await self.bot.get_guild(artist.guild_id).create_role(name=(artist.name.replace(" ", "") + 'Fan'))
+            role = await self.bot.get_guild(artist.guild_id).create_role(
+                name=(artist.name.replace(" ", "") + 'Fan'), mentionable=True)
         return role
 
     async def send_successful_follow_message(self, artist, interaction):
