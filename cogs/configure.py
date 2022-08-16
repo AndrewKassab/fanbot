@@ -19,11 +19,11 @@ class Configure(commands.Cog):
         await interaction.response.send_message("Attempting to set current channel for updates...", ephemeral=True)
         if not self.bot.db.is_guild_in_db(interaction.guild_id):
             self.bot.db.add_guild(Guild(interaction.guild_id, interaction.channel_id))
-            await interaction.edit_original_message(content="Channel successfully configured for updates. You "
+            await interaction.edit_original_response(content="Channel successfully configured for updates. You "
                                                             f"may begin following artists using `/{FOLLOW_COMMAND}`.")
         else:
             self.bot.db.update_guild_channel_id(interaction.guild_id, interaction.channel_id)
-            await interaction.edit_original_message(content="Current channel successfully configured for updates.")
+            await interaction.edit_original_response(content="Current channel successfully configured for updates.")
 
     @app_commands.command(
         name=HELP_COMMAND,

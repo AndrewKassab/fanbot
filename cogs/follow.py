@@ -20,7 +20,7 @@ class Follow(commands.Cog):
         await interaction.response.send_message('Attempting to follow artist...', ephemeral=True)
 
         if not self.bot.db.is_guild_in_db(interaction.guild_id):
-            await interaction.edit_original_message(
+            await interaction.edit_original_response(
                 content=f"A server admin must first use `/{SET_COMMAND}` to configure a channel to send updates to.")
             return
 
@@ -28,7 +28,7 @@ class Follow(commands.Cog):
             artist_id = extract_artist_id(artist_link)
             artist = await get_artist_by_id(artist_id)
         except InvalidArtistException:
-            await interaction.edit_original_message(
+            await interaction.edit_original_response(
                 content="Artist not found, please make sure you are providing a valid spotify artist url")
             return
 
@@ -40,10 +40,10 @@ class Follow(commands.Cog):
             self.bot.db.add_artist(artist)
             await self.send_successful_follow_message(artist, interaction)
         except IntegrityError:
-            await interaction.edit_original_message(content='This server is already following %s! We\'ve assigned '
+            await interaction.edit_original_response(content='This server is already following %s! We\'ve assigned '
                                                             'you the corresponding role.' % artist.name)
         except Exception as e:
-            await interaction.edit_original_message(content="Failed to follow artist.")
+            await interaction.edit_original_response(content="Failed to follow artist.")
             await role.delete()
             logging.exception('Failure to follow artist and add to db.')
             return
