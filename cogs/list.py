@@ -83,7 +83,8 @@ class RoleAssignView(View):
         if self.offset + 25 > len(self.select_options):
             self.remove_item(self.next_button)
         await interaction.response.defer()
-        await interaction.edit_original_message(content=DEF_MSG + f"{self.page}", view=self)
+        content = DEF_MSG + f"{self.page}"
+        await interaction.edit_original_message(content=content, view=self)
 
     async def page_prev(self, interaction: discord.Interaction):
         self.page -= 1
@@ -97,7 +98,8 @@ class RoleAssignView(View):
         self.remove_item(self.next_button)
         self.add_item(self.next_button)
         await interaction.response.defer()
-        await interaction.edit_original_message(content=DEF_MSG + f"{self.page}", view=self)
+        content = DEF_MSG + f"{self.page}"
+        await interaction.edit_original_message(content=content, view=self)
 
     def get_roles_added_string(self, roles):
         msg = "Roles added:"
