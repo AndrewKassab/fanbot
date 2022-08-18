@@ -66,7 +66,7 @@ class Follow(commands.Cog):
     async def send_successful_follow_message(self, artist, interaction):
         logging.info(f"Guild {interaction.guild_id} has followed a new artist: {artist.name} {artist.id}")
         message = await self.bot.get_channel(interaction.channel_id).send(
-            content="<@&%s> %s has been followed!\n:white_check_mark:: Assign Role. :x:: Remove Role."
-                    % (artist.role_id, artist.name))
+            content="<@&%s> %s has been followed by %s!\n:white_check_mark:: Assign Role. :x:: Remove Role."
+                    % (artist.role_id, artist.name, interaction.user.name))
         await message.add_reaction(FOLLOW_ROLE_EMOJI)
         await message.add_reaction(UNFOLLOW_ROLE_EMOJI)
