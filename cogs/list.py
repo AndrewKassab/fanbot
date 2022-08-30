@@ -49,16 +49,16 @@ class RoleAssignView(View):
             self.add_item(self.next_button)
 
     async def toggle_roles(self, interaction: discord.Interaction):
-        roles = []
-        for value in self.select.values:
-            roles.append(self.guild.get_role(int(value)))
+        await interaction.response.defer()
         roles_to_add = []
         roles_to_remove = []
-        for role in roles:
-            if interaction.user.get_role(role.id):
+        for role_id in self.select.values:
+            role = self.guild.get_role(int(role_id))
+            if interaction.user.get_role(int(role_id)):
                 roles_to_remove.append(role)
-            else:
+            elif role is not None:
                 roles_to_add.append(role)
+
         response_message = ""
         if len(roles_to_add) > 0:
             response_message += self.get_roles_added_string(roles_to_add)
@@ -66,10 +66,10 @@ class RoleAssignView(View):
         if len(roles_to_remove) > 0:
             response_message += self.get_roles_removed_string(roles_to_remove)
             await interaction.user.remove_roles(*roles_to_remove)
-        await interaction.response.defer()
         await interaction.edit_original_response(content=response_message)
 
     async def page_next(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.page += 1
         self.offset += 25
         self.select.options = self.select_options[self.offset:self.offset+25]
@@ -82,7 +82,6 @@ class RoleAssignView(View):
             self.add_item(self.next_button)
         if self.offset + 25 > len(self.select_options):
             self.remove_item(self.next_button)
-        await interaction.response.defer()
         await interaction.edit_original_response(content=DEF_MSG + str(self.page), view=self)
 
     async def page_prev(self, interaction: discord.Interaction):
