@@ -109,7 +109,7 @@ class MusicDatabase:
             try:
                 cur.execute("UPDATE Artists SET latest_release_name='%s' WHERE "
                             "artist_id='%s' AND guild_id='%s'" % (new_release_name, artist.id, artist.guild_id))
-            except mysql.connector.errors.DatabaseError:
+            except db.errors.DatabaseError:
                 continue
         con.commit()
         for artist in artists:
