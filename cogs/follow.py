@@ -1,6 +1,7 @@
 from utils.spotify import *
 from discord.ext import commands
 from mysql.connector.errors import IntegrityError
+from discord.errors import Forbidden
 import logging
 from discord import app_commands
 import discord
@@ -33,7 +34,12 @@ class Follow(commands.Cog):
             return
 
         artist.guild_id = interaction.guild_id
-        role = await self.get_role_for_artist(artist)
+        try:
+            role = await self.get_role_for_artist(artist)
+        except Forbidden:
+            await interaction.edit_original_response(content='Bot is missing Manage Roles permission.')
+            return
+
         artist.role_id = role.id
 
         try:
