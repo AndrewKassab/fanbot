@@ -1,9 +1,8 @@
 from utils.database import MusicDatabase
 from discord.ext import commands
 import cogs
-import logging
 import discord
-from settings import DISCORD_TOKEN
+from settings import DISCORD_TOKEN, logging
 
 
 class FanBot(commands.Bot):
@@ -24,9 +23,6 @@ class FanBot(commands.Bot):
     async def on_ready(self):
         logging.info('We have logged in as {0.user}'.format(bot))
 
-
-logging.basicConfig(level=logging.INFO,
-                    format="%(asctime)s;%(levelname)s;%(message)s")
 
 bot = FanBot()
 bot.run(DISCORD_TOKEN)

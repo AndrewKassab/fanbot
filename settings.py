@@ -1,8 +1,13 @@
 from dotenv import load_dotenv
 import os
 import mysql.connector
+import logging
 
 load_dotenv()
+
+
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s;%(levelname)s;%(message)s")
 
 # Database
 db = mysql.connector
