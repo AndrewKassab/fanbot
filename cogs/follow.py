@@ -29,6 +29,7 @@ class Follow(commands.Cog):
             artist_id = extract_artist_id(artist_link)
             artist = await get_artist_by_id(artist_id)
         except InvalidArtistException:
+            logging.error(f'User with id {interaction.user.id} attempted to follow with param: {artist_link}')
             await interaction.edit_original_response(
                 content="Artist not found, please make sure you are providing a valid spotify artist url")
             return
