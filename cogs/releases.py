@@ -15,6 +15,7 @@ class Releases(commands.Cog):
 
     @tasks.loop(minutes=10)
     async def check_new_releases(self):
+        logging.info('Checking for new releases')
         followed_artists = self.bot.db.get_all_artists()
         for artist in followed_artists:
             await self.check_new_release_for_artist(artist)
