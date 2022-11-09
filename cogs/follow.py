@@ -26,7 +26,6 @@ class Follow(commands.Cog):
                 content=f"A server admin must first use `/{SET_COMMAND}` to configure a channel to send updates to.")
             return
 
-        logging.info('before spotify')
         try:
             artist_id = extract_artist_id(artist_link)
             artist = await get_artist_by_id(artist_id)
@@ -34,7 +33,6 @@ class Follow(commands.Cog):
             await interaction.edit_original_response(
                 content="Artist not found, please make sure you are providing a valid spotify artist url")
             return
-        logging.info('after spotify')
 
         artist.guild_id = interaction.guild_id
         try:
