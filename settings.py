@@ -31,6 +31,8 @@ HELP_COMMAND = "help"
 FOLLOW_ROLE_EMOJI = '✅'
 UNFOLLOW_ROLE_EMOJI = '❌'
 
+LOOP_MINUTES = 30
+
 HELP_MESSAGE = f"Hello, I am fanbot! Your ultimate music fanboy. I can allow your server to follow music artists on " \
                f"Spotify and create a role to ping whenever that artist releases new music!\n\n__**Commands**__\n\n" \
                f"/{SET_COMMAND}: Admin only, configures the channel that releases will be sent to.\n\n/" \

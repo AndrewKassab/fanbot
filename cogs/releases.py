@@ -2,6 +2,7 @@ from discord.ext import commands, tasks
 import logging
 from utils import spotify
 from utils.database import Artist
+from settings import LOOP_MINUTES
 
 
 class Releases(commands.Cog):
@@ -13,7 +14,7 @@ class Releases(commands.Cog):
     async def on_ready(self):
         self.check_new_releases.start()
 
-    @tasks.loop(minutes=10)
+    @tasks.loop(minutes=LOOP_MINUTES)
     async def check_new_releases(self):
         logging.info('Checking for new releases')
         followed_artists = self.bot.db.get_all_artists()
