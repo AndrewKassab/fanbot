@@ -8,7 +8,7 @@ Fanbot is the ultimate music fanboy! Keep your discord server updated on release
 4. To unfollow an artist, delete their corresponding role.
 
 ![Follow Example](https://github.com/andrewkassab/fanbot/blob/main/resources/followexample.png?raw=true)
-![Notification Example](https://github.com/andrewkassab/fanbot/blob/main/resoureces/notificationexample.png?raw=true)
+![Notification Example](https://github.com/andrewkassab/fanbot/blob/main/resources/notificationexample.png?raw=true)
 ![List Roles Example](https://github.com/andrewkassab/fanbot/blob/main/resources/listrolesexample.png?raw=true)
 
 # Development
