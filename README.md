@@ -7,7 +7,9 @@ Fanbot is the ultimate music fanboy! Keep your discord server updated on release
 3. /listfollow - list all artists the bot is currently following.
 4. To unfollow an artist, delete their corresponding role.
 
-![Example Image](https://github.com/andrewkassab/mrmusic/blob/main/example.png?raw=true)
+![Follow Example](https://github.com/andrewkassab/fanbot/blob/main/followexample.png?raw=true)
+![Notification Example](https://github.com/andrewkassab/fanbot/blob/main/notification_example.png?raw=true)
+![List Roles Example](https://github.com/andrewkassab/fanbot/blob/main/listrolesexample?raw=true)
 
 # Development
 
