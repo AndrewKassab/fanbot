@@ -19,6 +19,9 @@ class List(commands.Cog):
     )
     async def list_follows(self, interaction: discord.Interaction):
         artists = self.bot.db.get_all_artists_for_guild(guild_id=interaction.guild_id).values()
+        if len(artists) == 0:
+            await interaction.response.send_message("No artists currently followed.", ephemeral=True)
+            return
         artists = sorted(artists, key=lambda x: x.name)
         guild = self.bot.get_guild(interaction.guild_id)
         await interaction.response.send_message(content=DEF_MSG + '1', view=RoleAssignView(artists, guild),
