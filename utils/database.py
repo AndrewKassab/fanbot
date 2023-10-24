@@ -1,24 +1,39 @@
 from collections import defaultdict
 from settings import DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, db
+from sqlalchemy import Column, String, Integer, ForeignKey, Date, BigInteger
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 
-class Artist:
+class Artist(Base):
+    __tablename__ = 'Artists'
 
-    def __init__(self, name, artist_id: str, guild_id: int = None, latest_release_id: str = None,
-                 latest_release_name=None, role_id: int = None):
-        self.id = artist_id
-        self.name = name
-        self.role_id = role_id
-        self.latest_release_id = latest_release_id
-        self.latest_release_name = latest_release_name
-        self.guild_id = guild_id
+    id = Column(String(25), primary_key=True)
+    name = Column(String(100))
+    latest_release_id = Column(String(25))
+    latest_release_name = Column(String(100))
+    latest_release_date = Column(Date)
+
+    guilds = relationship("Guild", secondary="FollowedArtist", back_populates="followed_artists")
 
 
 class Guild:
+    __tablename__ = "Guilds"
 
-    def __init__(self, guild_id, music_channel_id):
-        self.id = guild_id
-        self.music_channel_id = music_channel_id
+    id = Column(String(25), primary_key=True)
+    music_channel_id = Column(BigInteger)
+
+    artists = relationship("Artist", secondary="FollowedArtist", back_populates="guilds")
+
+
+class FollowedArtist:
+    __tablename__ = 'FollowedArtists'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    artist_id = Column(String(25), ForeignKey('Artist.id'))
+    guild_id = Column(String(25), ForeignKey('Guild.id'))
 
 
 class MusicDatabase:
