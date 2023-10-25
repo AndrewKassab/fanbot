@@ -43,8 +43,6 @@ class Database:
     def __init__(self):
         self.engine = create_engine(db_url)
         self.Session = sessionmaker(bind=self.engine)
-        # Populate cache
-        self.guild_to_artists = self.get_all_guilds_to_artists()
         self.guilds = {}
         self.artists = {}
         self.load_all_guilds()
@@ -79,14 +77,11 @@ class Database:
     def add_guild(self, guild_id, music_channel_id):
         session = self.Session()
         try:
-            # Create a new Guild object
             new_guild = Guild(id=guild_id, music_channel_id=music_channel_id)
 
-            # Add the new guild to the database
             session.add(new_guild)
             session.commit()
 
-            # Add the new guild to the cache
             self.guilds[guild_id] = new_guild
         except SQLAlchemyError as e:
             session.rollback()
@@ -111,7 +106,29 @@ class Database:
             session.close()
 
     def delete_guild_by_id(self, guild_id):
-        self._generic_delete(Guild, guild_id, self.guilds)
+        session = self.Session()
+        try:
+            guild = session.query(Guild).filter_by(id=guild_id).first()
+            if guild:
+                for artist in guild.artists:
+                    artist.guilds.remove(guild)
+                    if artist.id in self.artists:
+                        self.artists[artist.id].guilds.remove(guild)
+
+                session.delete(guild)
+                session.commit()
+
+                if guild_id in self.guilds:
+                    del self.guilds[guild_id]
+
+                logging.info(f"Successfully deleted guild {guild_id} and updated artist associations.")
+            else:
+                logging.warning(f"Guild with id {guild_id} not found.")
+        except SQLAlchemyError as e:
+            session.rollback()
+            logging.error(f"An error occurred: {e}")
+        finally:
+            session.close()
 
     def is_guild_exist(self, guild_id):
         return guild_id in self.guilds.keys()
@@ -160,7 +177,29 @@ class Database:
             session.close()
 
     def delete_artist_by_id(self, artist_id):
-        self._generic_delete(Artist, artist_id, self.artists)
+        session = self.Session()
+        try:
+            artist = session.query(Artist).filter_by(id=artist_id).first()
+            if artist:
+                for guild in artist.guilds:
+                    guild.artists.remove(artist)
+                    if guild.id in self.guilds:
+                        self.guilds[guild.id].artists.remove(artist)
+
+                session.delete(artist)
+                session.commit()
+
+                if artist_id in self.artists:
+                    del self.artists[artist_id]
+
+                logging.info(f"Successfully deleted artist {artist_id} and updated guild associations.")
+            else:
+                logging.warning(f"Artist with id {artist_id} not found.")
+        except SQLAlchemyError as e:
+            session.rollback()
+            logging.error(f"An error occurred: {e}")
+        finally:
+            session.close()
 
     def unfollow_artist_for_guild(self, artist_id, guild_id):
         session = self.Session()
@@ -171,6 +210,11 @@ class Database:
                 session.delete(association)  # Delete the association
                 session.commit()
                 logging.info(f"Successfully removed association between guild {guild_id} and artist {artist_id}")
+                artist = self.artists.get(artist_id)
+                guild = self.guilds.get(guild_id)
+                if artist and guild:
+                    guild.artists.remove(artist)
+                    artist.guilds.remove(guild)
             else:
                 logging.warning(f"No association found between guild {guild_id} and artist {artist_id}")
         except SQLAlchemyError as e:
@@ -178,21 +222,3 @@ class Database:
             logging.error(f"An error occurred: {e}")
         finally:
             session.close()
-
-    def _generic_delete(self, model_class, id, cache):
-        session = self.Session()
-        try:
-            entity = session.query(model_class).filter_by(id=id).first()
-            if entity:
-                session.delete(entity)
-                session.commit()
-                if id in cache:
-                    del cache[id]
-            else:
-                logging.warning(f"{model_class.__name__} with id {id} not found.")
-        except SQLAlchemyError as e:
-            session.rollback()
-            logging.error(f"An error occurred: {e}")
-        finally:
-            session.close()
-
