@@ -41,14 +41,16 @@ class Releases(commands.Cog):
         for guild in artist.guilds:
             if self.bot.get_guild(guild.id) is None:
                 self.bot.db.delete_guild_by_id(guild.id)
-                return
+            if self.bot.get_guild(guild.id) is None or \
+                    self.bot.get_guild(guild.id).get_channel(guild.music_channel_id) is None:
+                continue
             role_ids = self.get_role_ids(newest_release, guild)
             if len(role_ids) == 0:
                 self.bot.db.unfollow_artist_for_guild(artist.id, guild.id)
             else:
                 await self.notify_release(newest_release, guild, role_ids)
 
-    async def notify_release(self, release, guild, role_ids):
+    async def notify_release(self, release, guild, role_ids, channel):
         logging.info(f"Notifying a new release by artist id {role_ids[0]} to Guild {guild.id}")
         release_url = release['url'] if 'url' in release.keys() else release['external_urls']['spotify']
         message_text = ""
