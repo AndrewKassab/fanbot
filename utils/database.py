@@ -57,7 +57,7 @@ class Database:
             for guild in session.query(Guild).all():
                 self.guilds[guild.id] = guild
         except SQLAlchemyError as e:
-            print(f"An error occurred: {e}")
+            logging.error(f"An error occurred: {e}")
         finally:
             session.close()
 
@@ -67,12 +67,15 @@ class Database:
             for artist in session.query(Artist).all():
                 self.artists[artist.id] = artist
         except SQLAlchemyError as e:
-            print(f"An error occurred: {e}")
+            logging.error(f"An error occurred: {e}")
         finally:
             session.close()
 
     def get_guild_by_id(self, guild_id):
         return self.guilds.get(guild_id)
+
+    def get_all_guilds(self):
+        return self.guilds.values()
 
     def add_guild(self, guild_id, music_channel_id):
         session = self.Session()
@@ -88,7 +91,7 @@ class Database:
             self.guilds[guild_id] = new_guild
         except SQLAlchemyError as e:
             session.rollback()
-            print(f"An error occurred: {e}")
+            logging.error(f"An error occurred: {e}")
         finally:
             session.close()
 
@@ -101,10 +104,10 @@ class Database:
                 self.guilds[updated_guild.id] = guild
                 session.commit()
             else:
-                print(f"Guild with id {updated_guild.id} not found.")
+                logging.warning(f"Guild with id {updated_guild.id} not found.")
         except Exception as e:
             session.rollback()
-            print(f"An error occurred: {e}")
+            logging.error(f"An error occurred: {e}")
         finally:
             session.close()
 
@@ -116,6 +119,9 @@ class Database:
 
     def get_artist_by_id(self, artist_id):
         return self.artists.get(artist_id)
+
+    def get_all_artists(self):
+        return self.artists.values()
 
     def add_artist(self, artist_id, name):
         session = self.Session()
@@ -129,7 +135,7 @@ class Database:
             self.artists[artist_id] = new_artist
         except SQLAlchemyError as e:
             session.rollback()
-            print(f"An error occurred: {e}")
+            logging.error(f"An error occurred: {e}")
         finally:
             session.close()
 
