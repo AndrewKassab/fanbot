@@ -1,11 +1,12 @@
-from utils.spotify import *
+import utils.spotify as sp
 from discord.ext import commands
-from mysql.connector.errors import IntegrityError
 from discord.errors import Forbidden
-import logging
 from discord import app_commands
+from discord.utils import get
 import discord
+import logging
 from settings import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI, FOLLOW_COMMAND, SET_COMMAND
+from sqlalchemy.exc import IntegrityError
 
 
 class Follow(commands.Cog):
@@ -27,21 +28,18 @@ class Follow(commands.Cog):
             return
 
         try:
-            artist_id = extract_artist_id(artist_link)
-            artist = await get_artist_by_id(artist_id)
-        except InvalidArtistException:
+            artist = await sp.get_artist_by_link(artist_link)
+        except sp.InvalidArtistException:
             await interaction.edit_original_response(
                 content="Artist not found, please make sure you are providing a valid spotify artist url")
             return
 
-        artist.guild_id = interaction.guild_id
+        guild_id = interaction.guild_id
         try:
-            role = await self.get_role_for_artist(artist)
+            role = await self.get_role_for_artist(artist,guild_id)
         except Forbidden:
             await interaction.edit_original_response(content='Bot is missing Manage Roles permission.')
             return
-
-        artist.role_id = role.id
 
         try:
             self.bot.db.add_artist(artist)
@@ -49,7 +47,7 @@ class Follow(commands.Cog):
         except IntegrityError:
             await interaction.edit_original_response(content='This server is already following %s! We\'ve assigned '
                                                             'you the corresponding role.' % artist.name)
-        except Exception as e:
+        except:
             await interaction.edit_original_response(content="Failed to follow artist.")
             await role.delete()
             logging.exception('Failure to follow artist and add to db.')
@@ -57,17 +55,13 @@ class Follow(commands.Cog):
 
         await interaction.user.add_roles(role)
 
-    async def get_role_for_artist(self, artist):
-        artist_db = self.bot.db.get_artist_for_guild(artist.id, artist.guild_id)
-        if artist_db is not None:
-            role = self.bot.get_guild(artist_db.guild_id).get_role(artist_db.role_id)
-            if role is None:
-                self.bot.db.remove_artist(artist)
-                role = await self.bot.get_guild(artist_db.guild_id).create_role(
-                    name=(artist_db.name.replace(" ", "") + 'Fan'), mentionable=True)
-        else:
-            role = await self.bot.get_guild(artist.guild_id).create_role(
-                name=(artist.name.replace(" ", "") + 'Fan'), mentionable=True)
+    async def get_role_for_artist(self, artist, guild_id):
+        guild = self.bot.get_guild(guild_id)
+        role = None
+        if self.bot.db.is_artist_exist(artist.id):
+            role = get(guild.roles, name=f"{artist.name}Fan").id
+        if role is None:
+            role = await guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'), mentionable=True)
         return role
 
     async def send_successful_follow_message(self, artist, interaction):

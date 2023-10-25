@@ -17,15 +17,23 @@ client_id = SP_CLIENT_ID
 client_secret = SP_CLIENT_SECRET
 
 
-async def get_artist_by_id(artist_id):
+async def get_artist_by_link(artist_link):
+    artist_id = extract_artist_id(artist_link)
     sp = spotify.Client(client_id, client_secret)
     try:
         result = await sp.get_artist(artist_id)
         await sp.close()
-        return Artist(artist_id=result.id, name=result.name)
+        return Artist(id=result.id, name=result.name)
     except spotify.errors.HTTPException:
         await sp.close()
         raise InvalidArtistException
+
+
+def extract_artist_id(artist_link):
+    if len(artist_link) < 54:
+        raise InvalidArtistException
+    without_url = artist_link[32:]
+    return without_url.split('?')[0]
 
 
 async def get_newest_release_by_artist(artist_id):
@@ -62,8 +70,3 @@ def is_release_new(release):
     return False
 
 
-def extract_artist_id(artist_link):
-    if len(artist_link) < 54:
-        raise InvalidArtistException
-    without_url = artist_link[32:]
-    return without_url.split('?')[0]

@@ -9,7 +9,7 @@ class TestSpotify(unittest.TestCase):
 
     async def test_get_artist_id_valid(self):
         artist_id = extract_artist_id(self.valid_artist)
-        artist = await get_artist_by_id(artist_id)
+        artist = await get_artist_by_link(artist_id)
         self.assertEqual(self.valid_artist_true_id, artist.id)
 
     async def test_get_artist_newest_release(self):
