@@ -1,6 +1,7 @@
 from datetime import datetime
 import pytz
 from discord.ext import commands, tasks
+from discord.utils import get
 import logging
 from utils import spotify
 from utils.database import Artist
@@ -33,38 +34,38 @@ class Releases(commands.Cog):
         newest_release = await spotify.get_newest_release_by_artist(artist.id)
         if newest_release is None:
             return
-
-        channel_id = self.bot.db.get_music_channel_id_for_guild_id(artist.guild_id)
-        channel = guild.get_channel(channel_id)
-        if channel is None:
+        if newest_release['id'] == artist.latest_release_id or \
+                newest_release['name'] == artist.latest_release_name:
             return
 
-        artist_role = channel.guild.get_role(artist.role_id)
-        if artist_role is None:
-            self.bot.db.remove_artist(artist)
-            return
+        for guild in artist.guilds:
+          await self.notify_release(newest_release, guild)
 
+    async def notify_release(self, release, guild):
+        artist_role_ids = self.get_relevant_artists_roles_ids(release, guild)
 
-        relevant_artists = self.get_relevant_artists_for_release(newest_release, artist.guild_id)
-        if relevant_artists is not None:
-            await self.notify_release(newest_release, relevant_artists, channel)
-
-    def get_relevant_artists_for_release(self, release, guild_id):
-        relevant_artists = []
-        curr_guild_artists = self.bot.db.get_all_artists_for_guild(guild_id)
-        for artist in release['artists']:
-            db_artist = curr_guild_artists.get(artist['id'])
-            if db_artist is not None:
-                if release['id'] == db_artist.latest_release_id or release['name'] == db_artist.latest_release_name:
-                    return None
-                relevant_artists.append(curr_guild_artists[artist['id']])
-        return relevant_artists
-
-    async def notify_release(self, release, artists, channel):
-        logging.info(f"Notifying a new release by {artists[0].name} to Guild {channel.guild.id}")
+        logging.info(f"Notifying a new release by artist id {artist_role_ids[0]} to Guild {guild.id}")
         release_url = release['url'] if 'url' in release.keys() else release['external_urls']['spotify']
         message_text = ""
-        for i in range(1, len(artists)):
-            message_text += '<@&%s>, ' % artists[i].role_id
-        await channel.send(message_text + "<@&%s> New Release!\n%s" % (artists[0].role_id, release_url))
-        self.bot.db.set_latest_release_for_artists(artists, release['id'], release['name'])
+        for i in range(1, len(artist_role_ids)):
+            message_text += '<@&%s>, ' % artist_role_ids[i].id
+        await guild.get_channel(guild.music_channel_id).send(message_text + "<@&%s> New Release!\n%s"
+                                                             % (artist_role_ids[0], release_url))
+
+    def get_relevant_artists_roles_ids(self, release, guild):
+        relevant_artists = []
+        for artist in release['artists']:
+            if guild.artists.get(artist['id']) is not None:
+                relevant_artists.append(guild.artists.get(artist['id']))
+        artist_role_ids = []
+        for artist in relevant_artists:
+            artist_role_ids.append(get(guild.roles, name= f"{artist.name}Fan").id)
+        self.update_artist_releases(release, relevant_artists)
+        return artist_role_ids
+
+    def update_artist_releases(self, release, artists):
+        for artist in artists:
+            artist.latest_release_id = release['id']
+            artist.latest_release_name = release['name']
+            self.bot.db.update_artist(artist)
+

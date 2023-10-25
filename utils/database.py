@@ -162,6 +162,23 @@ class Database:
     def delete_artist_by_id(self, artist_id):
         self._generic_delete(Artist, artist_id, self.artists)
 
+    def unfollow_artist_for_guild(self, artist_id, guild_id):
+        session = self.Session()
+        try:
+            # Find the association in the FollowedArtist table
+            association = session.query(FollowedArtist).filter_by(artist_id=artist_id, guild_id=guild_id).first()
+            if association:
+                session.delete(association)  # Delete the association
+                session.commit()
+                logging.info(f"Successfully removed association between guild {guild_id} and artist {artist_id}")
+            else:
+                logging.warning(f"No association found between guild {guild_id} and artist {artist_id}")
+        except SQLAlchemyError as e:
+            session.rollback()
+            logging.error(f"An error occurred: {e}")
+        finally:
+            session.close()
+
     def _generic_delete(self, model_class, id, cache):
         session = self.Session()
         try:
