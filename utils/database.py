@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from settings import DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, db_url
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import Column, String, Integer, ForeignKey, Date, BigInteger, create_engine
+from sqlalchemy import Column, String, Integer, ForeignKey, BigInteger, create_engine
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import logging
@@ -17,7 +17,6 @@ class Artist(Base):
     name = Column(String(100))
     latest_release_id = Column(String(25))
     latest_release_name = Column(String(100))
-    latest_release_date = Column(Date)
 
     guilds = relationship("Guild", secondary="FollowedArtist", back_populates="followed_artists")
 
@@ -146,7 +145,6 @@ class Database:
                 'name': updated_artist.name,
                 'latest_release_id': updated_artist.latest_release_id,
                 'latest_release_name': updated_artist.latest_release_name,
-                'latest_release_date': updated_artist.latest_release_date
             })
 
             if artist:  # update() returns the number of matched items
