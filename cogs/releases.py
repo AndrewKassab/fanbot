@@ -1,3 +1,5 @@
+from datetime import datetime
+import pytz
 from discord.ext import commands, tasks
 import logging
 from utils import spotify
@@ -13,17 +15,23 @@ class Releases(commands.Cog):
     async def on_ready(self):
         self.check_new_releases.start()
 
-    @tasks.loop(minutes=10)
+    @tasks.loop(minutes=1)
     async def check_new_releases(self):
+        eastern = pytz.timezone('US/Eastern')
+        eastern_now = datetime.now(eastern)
+        if eastern_now.hour != 0 and eastern_now.minute != 0:
+            return
         logging.info('Checking for new releases')
-        followed_artists = self.bot.db.get_all_artists()
-        for artist in followed_artists:
+        artists = self.bot.db.get_all_artists()
+        for artist in artists:
             await self.check_new_release_for_artist(artist)
 
     async def check_new_release_for_artist(self, artist: Artist):
-        guild = self.bot.get_guild(artist.guild_id)
-        if guild is None:
-            self.bot.db.remove_guild(artist.guild_id)
+        if len(artist.guilds) == 0:
+            self.bot.db.delete_artist_by_id(artist.id)
+
+        newest_release = await spotify.get_newest_release_by_artist(artist.id)
+        if newest_release is None:
             return
 
         channel_id = self.bot.db.get_music_channel_id_for_guild_id(artist.guild_id)
@@ -36,9 +44,6 @@ class Releases(commands.Cog):
             self.bot.db.remove_artist(artist)
             return
 
-        newest_release = await spotify.get_newest_release_by_artist(artist.id)
-        if newest_release is None:
-            return
 
         relevant_artists = self.get_relevant_artists_for_release(newest_release, artist.guild_id)
         if relevant_artists is not None:
