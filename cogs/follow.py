@@ -21,7 +21,7 @@ class Follow(commands.Cog):
         logging.info(f'User {interaction.user.id} in guild {interaction.guild.id} used follow with param: {artist_link}')
         await interaction.response.send_message('Attempting to follow artist...', ephemeral=True)
 
-        if not self.bot.db.is_guild_in_db(interaction.guild_id):
+        if not self.bot.db.is_guild_exist(interaction.guild_id):
             await interaction.edit_original_response(
                 content=f"A server admin must first use `/{SET_COMMAND}` to configure a channel to send updates to.")
             return

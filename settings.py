@@ -9,9 +9,6 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s;%(levelname)s;%(message)s")
 
-# Database
-db = mysql.connector
-
 # Environment Variables
 DB_HOST = os.environ.get("DB_HOST")
 DB_USER = os.environ.get("DB_USER")
@@ -20,6 +17,8 @@ DB_NAME = os.environ.get("DB_NAME")
 SP_CLIENT_ID = os.environ.get("SP_CLIENT_ID")
 SP_CLIENT_SECRET = os.environ.get("SP_CLIENT_SECRET")
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
+
+db_url = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 
 # Slash Command names
 SET_COMMAND = "setchannel"

@@ -17,7 +17,7 @@ class Configure(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def set_update_channel(self, interaction: discord.Interaction):
         await interaction.response.send_message("Attempting to set current channel for updates...", ephemeral=True)
-        if not self.bot.db.is_guild_in_db(interaction.guild_id):
+        if not self.bot.db.is_guild_exist(interaction.guild_id):
             self.bot.db.add_guild(Guild(interaction.guild_id, interaction.channel_id))
             await interaction.edit_original_response(content="Channel successfully configured for updates. You "
                                                             f"may begin following artists using `/{FOLLOW_COMMAND}`.")
