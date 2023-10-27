@@ -66,7 +66,11 @@ class Releases(commands.Cog):
                 relevant_artists.append(guild.artists.get(artist['id']))
         artist_role_ids = []
         for artist in relevant_artists:
-            artist_role_ids.append(get(self.bot.get_guild(guild.id).roles, name=f"{artist.name}Fan").id)
+            role = get(self.bot.get_guild(guild.id).roles, name=f"{artist.name}Fan")
+            if role is None:
+                self.bot.db.unfollow_artist_for_guild(artist.id, guild.id)
+            else:
+                artist_role_ids.append(role.id)
         self.update_artist_releases(release, relevant_artists)
         return artist_role_ids
 

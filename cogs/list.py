@@ -18,7 +18,7 @@ class List(commands.Cog):
         description="list followed artists and self-assign roles",
     )
     async def list_follows(self, interaction: discord.Interaction):
-        artists = self.bot.db.get_all_artists_for_guild(guild_id=interaction.guild_id).values()
+        artists = self.bot.db.get_guild_by_id(guild_id=interaction.guild_id).artists
         if len(artists) == 0:
             await interaction.response.send_message("No artists currently followed.", ephemeral=True)
             return

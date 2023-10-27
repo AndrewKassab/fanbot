@@ -1,14 +1,19 @@
-from collections import defaultdict
 from contextlib import contextmanager
 
-from settings import DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, db_url
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import Column, String, Integer, ForeignKey, BigInteger, create_engine
+from settings import db_url
+from sqlalchemy import Column, String, Integer, ForeignKey, BigInteger, create_engine, Table
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import logging
 
 Base = declarative_base()
+
+
+FollowedArtist = Table('FollowedArtist', Base.metadata,
+    Column('id', Integer, primary_key=True, autoincrement=True),
+    Column('artist_id', String(25), ForeignKey('Artists.id')),
+    Column('guild_id', String(25), ForeignKey('Guilds.id'))
+)
 
 
 class Artist(Base):
@@ -19,24 +24,16 @@ class Artist(Base):
     latest_release_id = Column(String(25))
     latest_release_name = Column(String(100))
 
-    guilds = relationship("Guild", secondary="FollowedArtist", back_populates="followed_artists")
+    guilds = relationship("Guild", secondary=FollowedArtist, back_populates="artists")
 
 
-class Guild:
+class Guild(Base):
     __tablename__ = "Guilds"
 
     id = Column(String(25), primary_key=True)
     music_channel_id = Column(BigInteger)
 
-    artists = relationship("Artist", secondary="FollowedArtist", back_populates="guilds")
-
-
-class FollowedArtist:
-    __tablename__ = 'FollowedArtists'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    artist_id = Column(String(25), ForeignKey('Artist.id'))
-    guild_id = Column(String(25), ForeignKey('Guild.id'))
+    artists = relationship("Artist", secondary=FollowedArtist, back_populates="guilds")
 
 
 class Database:
@@ -101,12 +98,9 @@ class Database:
                     artist.guilds.remove(guild)
                     if artist.id in self.artists:
                         self.artists[artist.id].guilds.remove(guild)
-
                 session.delete(guild)
-
                 if guild_id in self.guilds:
                     del self.guilds[guild_id]
-
                 logging.info(f"Deleted guild {guild_id} and updated artist associations.")
 
     def is_guild_exist(self, guild_id):
@@ -156,7 +150,7 @@ class Database:
         with self.session_scope() as session:
             association = session.query(FollowedArtist).filter_by(artist_id=artist_id, guild_id=guild_id).first()
             if association:
-                session.delete(association)  # Delete the association
+                session.delete(association)
                 artist = self.artists.get(artist_id)
                 guild = self.guilds.get(guild_id)
                 if artist and guild:
