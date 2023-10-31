@@ -1,6 +1,5 @@
 from dotenv import load_dotenv
 import os
-import mysql.connector
 import logging
 
 load_dotenv()

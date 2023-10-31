@@ -46,7 +46,7 @@ async def get_newest_release_by_artist(artist_id):
             newest_release = items[0] if items else None
             if is_release_new(newest_release):
                 tracks = await sp.http.album_tracks(newest_release['id'])
-                if len(tracks['items']) <= 1:
+                if len(tracks['items']) >= 1:
                     newest_release = tracks['items'][0]
             else:
                 newest_release = None

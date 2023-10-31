@@ -1,6 +1,6 @@
 spotify~=0.10.2
 pytz~=2022.1
-git+https://github.com/Rapptz/discord.py
+discord.py
 python-dotenv~=1.0.0
 SQLAlchemy~=2.0.22
 PyMySql
