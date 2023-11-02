@@ -1,7 +1,7 @@
 from services.spotify import *
 import unittest
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
 
 
 class TestSpotify(IsolatedAsyncioTestCase):
@@ -31,6 +31,11 @@ class TestSpotify(IsolatedAsyncioTestCase):
             'release_date': two_days_ago_formatted
         }
 
+        self.mock_sp = MagicMock(spec = spotify.Client)
+        self.mock_sp.http = MagicMock()
+        self.mock_sp.http.artist_albums = AsyncMock()
+        self.mock_sp.http.album_tracks = AsyncMock()
+
     async def mock_artist_albums_single_new(self, artist_id, limit=1, include_groups='album'):
         if include_groups == 'album':
             return {'items': [self.old_album_release]}
@@ -47,34 +52,27 @@ class TestSpotify(IsolatedAsyncioTestCase):
         artist = await get_artist_by_link(self.valid_artist)
         self.assertEqual(self.valid_artist_true_id, artist.id)
 
-    @patch('utils.spotify.spotify.Client')
-    async def test_get_newest_release_when_new_album(self, MockedSpotifyClient):
-        sp_mock = AsyncMock()
-        sp_mock.http.artist_albums.return_value = {'items': [self.new_album_release]}
-        MockedSpotifyClient.return_value = sp_mock
+    async def test_get_newest_release_when_new_album(self):
+        with patch('services.spotify.spotify.Client', return_value=self.mock_sp):
+            self.mock_sp.http.artist_albums.return_value = {'items': [self.new_album_release]}
 
-        newest_release = await get_newest_release_by_artist('someid')
-        self.assertEqual(newest_release, self.new_album_release)
+            newest_release = await get_newest_release_by_artist('someid')
+            self.assertEqual(newest_release, self.new_album_release)
 
-    @patch('utils.spotify.spotify.Client')
-    async def test_get_newest_release_when_new_single(self, MockSpotifyClient):
-        sp_mock = AsyncMock()
-        sp_mock.http.artist_albums = self.mock_artist_albums_single_new
-        sp_mock.http.album_tracks.return_value = {'items': [self.new_single_release]}
-        MockSpotifyClient.return_value = sp_mock
+    async def test_get_newest_release_when_new_single(self):
+        with patch('services.spotify.spotify.Client', return_value=self.mock_sp):
+            self.mock_sp.http.artist_albums = self.mock_artist_albums_single_new
+            self.mock_sp.http.album_tracks.return_value = {'items': [self.new_single_release]}
 
-        newest_release = await get_newest_release_by_artist('someid')
-        self.assertEqual(newest_release, self.new_single_release)
+            newest_release = await get_newest_release_by_artist('someid')
+            self.assertEqual(newest_release, self.new_single_release)
 
-    @patch('utils.spotify.spotify.Client')
-    async def test_get_newest_release_no_new_release(self, MockSpotifyClient):
-        sp_mock = AsyncMock()
-        sp_mock.http.artist_albums = self.mock_artist_albums_no_new
+    async def test_get_newest_release_no_new_release(self):
+        with patch('services.spotify.spotify.Client', return_value=self.mock_sp):
+            self.mock_sp.http.artist_albums.side_effect = self.mock_artist_albums_no_new
 
-        MockSpotifyClient.return_value = sp_mock
-
-        newest_release = await get_newest_release_by_artist('someid')
-        self.assertIsNone(newest_release)
+            newest_release = await get_newest_release_by_artist('someid')
+            self.assertIsNone(newest_release)
 
 
 if __name__ == '__main__':

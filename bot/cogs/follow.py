@@ -8,6 +8,7 @@ import logging
 from settings import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI, FOLLOW_COMMAND, SET_COMMAND
 from sqlalchemy.exc import IntegrityError
 
+ATTEMPT_FOLLOW_MESSAGE = "'Attempting to follow artist...'"
 CONFIGURE_CHANNEL_MESSAGE = f"A server admin must first use `/{SET_COMMAND}` to configure a channel to send updates to."
 
 
@@ -22,7 +23,7 @@ class Follow(commands.Cog):
     )
     async def follow_artist(self, interaction: discord.Interaction, artist_link: str):
         logging.info(f'User {interaction.user.id} in guild {interaction.guild.id} used follow with param: {artist_link}')
-        await interaction.response.send_message('Attempting to follow artist...', ephemeral=True)
+        await interaction.response.send_message(ATTEMPT_FOLLOW_MESSAGE, ephemeral=True)
 
         if not self.bot.db.is_guild_exist(interaction.guild_id):
             await interaction.edit_original_response(content=CONFIGURE_CHANNEL_MESSAGE)
