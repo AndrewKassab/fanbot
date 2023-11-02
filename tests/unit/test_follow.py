@@ -24,8 +24,7 @@ class TestFollow(IsolatedAsyncioTestCase):
             mock_send.assert_called_once_with('Attempting to follow artist...', ephemeral=True)
 
     async def test_guild_not_in_db(self):
-        with patch.object(self.cog.bot.db.is_guild_exist, 'is_guild_exist', new_callable=MagicMock, return_value=False):
-            self.cog.bot.db.is_guild_exist.return_value = False
+        with patch.object(self.cog.bot.db, 'is_guild_exist', return_value=False):
             with patch.object(self.mock_interaction, 'edit_original_response') as mock_edit:
                 await self.cog.follow_artist.callback(self.cog, self.mock_interaction, "some_artist_link")
                 mock_edit.assert_called_once_with(content=CONFIGURE_CHANNEL_MESSAGE)
