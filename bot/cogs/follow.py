@@ -8,6 +8,8 @@ import logging
 from settings import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI, FOLLOW_COMMAND, SET_COMMAND
 from sqlalchemy.exc import IntegrityError
 
+CONFIGURE_CHANNEL_MESSAGE = f"A server admin must first use `/{SET_COMMAND}` to configure a channel to send updates to."
+
 
 class Follow(commands.Cog):
 
@@ -25,8 +27,7 @@ class Follow(commands.Cog):
         is_exist = self.bot.db.is_guild_exist(interaction.guild_id)
 
         if not self.bot.db.is_guild_exist(interaction.guild_id):
-            await interaction.edit_original_response(
-                content=f"A server admin must first use `/{SET_COMMAND}` to configure a channel to send updates to.")
+            await interaction.edit_original_response(content=CONFIGURE_CHANNEL_MESSAGE)
             return
 
         try:

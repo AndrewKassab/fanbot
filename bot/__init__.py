@@ -1,0 +1,1 @@
+from .fanbot import FanBot
