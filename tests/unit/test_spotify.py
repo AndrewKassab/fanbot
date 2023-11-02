@@ -1,7 +1,7 @@
-from utils.spotify import *
+from services.spotify import *
 import unittest
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import patch, AsyncMock, Mock
+from unittest.mock import patch, AsyncMock
 
 
 class TestSpotify(IsolatedAsyncioTestCase):

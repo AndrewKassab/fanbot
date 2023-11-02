@@ -1,4 +1,4 @@
-from utils.database import Database
+from services.fanbotdatabase import FanbotDatabase
 from discord.ext import commands
 import cogs
 import discord
@@ -9,7 +9,7 @@ class FanBot(commands.Bot):
 
     def __init__(self):
         super().__init__(command_prefix="!", intents=discord.Intents.default())
-        self.db = Database()
+        self.db = FanbotDatabase()
 
     async def setup_hook(self) -> None:
         await self.add_cog(cogs.Configure(self))

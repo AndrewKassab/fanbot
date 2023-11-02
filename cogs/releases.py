@@ -3,8 +3,8 @@ import pytz
 from discord.ext import commands, tasks
 from discord.utils import get
 import logging
-from utils import spotify
-from utils.database import Artist
+from services import spotify
+from services.fanbotdatabase import Artist
 
 
 class Releases(commands.Cog):

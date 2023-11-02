@@ -1,4 +1,4 @@
-from utils.database import Guild
+from services.fanbotdatabase import Guild
 from discord.ext import commands
 from discord import app_commands
 from settings import SET_COMMAND, FOLLOW_COMMAND, HELP_COMMAND, HELP_MESSAGE

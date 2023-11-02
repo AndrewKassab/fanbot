@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, time
 import pytz
-from utils.database import Artist
+from services.fanbotdatabase import Artist
 import spotify
 from json import JSONDecodeError
 import logging

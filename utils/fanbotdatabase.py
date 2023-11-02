@@ -36,7 +36,7 @@ class Guild(Base):
     artists = relationship("Artist", secondary=FollowedArtist, back_populates="guilds")
 
 
-class Database:
+class FanbotDatabase:
 
     def __init__(self):
         self.engine = create_engine(db_url)
