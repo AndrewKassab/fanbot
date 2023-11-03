@@ -107,10 +107,14 @@ class FanbotDatabase:
     def get_all_artists(self):
         return self.artists.values()
 
-    def add_artist(self, artist):
+    # Artists are only ever added when a guild initially follows them
+    def add_new_artist(self, artist, guild_id):
         with self.session_scope() as session:
-            session.add(artist)
-            self.artists[artist.id] = artist
+            guild = self.guilds[guild_id]
+            if self.get_artist_by_id(artist.id) is None:
+                session.add(artist)
+                self.artists[artist.id] = artist
+                artist.guilds.append(guild)
 
     def update_artist(self, updated_artist):
         with self.session_scope() as session:
@@ -150,6 +154,14 @@ class FanbotDatabase:
                     artist.guilds.remove(guild)
                 if len(artist.guilds) == 0:
                     self.delete_artist_by_id(artist_id)
+
+    def follow_existing_artist_for_guild(self, artist_id, guild_id):
+        with self.session_scope() as session:
+            artist = session.query(Artist).filter_by(artist_id=artist_id).first()
+            artist.guilds.append(self.guilds[guild_id])
+
+            self.artists[artist_id].guilds.append(self.guilds[guild_id])
+            self.guilds[guild_id].artists.append(self.artists[artist_id])
 
     def does_guild_follow_artist(self, guild_id, artist_id):
         with self.session_scope() as session:
