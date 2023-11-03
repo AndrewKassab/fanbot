@@ -43,19 +43,18 @@ class Follow(commands.Cog):
             await interaction.edit_original_response(content='Bot is missing Manage Roles permission.')
             return
 
-        if self.bot.db.get_guild_by_id(guild_id).artists
-            self.bot.db.add_artist(artist)
-            await self.send_successful_follow_message(artist, interaction)
-        except IntegrityError:
-            await interaction.edit_original_response(content='This server is already following %s! We\'ve assigned '
-                                                            'you the corresponding role.' % artist.name)
+        try:
+            if self.bot.db.does_guild_follow_artist(guild_id, artist.id):
+                await interaction.edit_original_response(content='This server is already following %s! We\'ve assigned '
+                                                                 'you the corresponding role.' % artist.name)
+            else:
+                self.bot.db.add_artist(artist)
+                await self.send_successful_follow_message(artist, interaction)
+            await interaction.user.add_roles(role)
         except:
             await interaction.edit_original_response(content="Failed to follow artist.")
             await role.delete()
             logging.exception('Failure to follow artist and add to db.')
-            return
-
-        await interaction.user.add_roles(role)
 
     async def get_role_for_artist(self, artist, guild_id):
         guild = self.bot.get_guild(guild_id)

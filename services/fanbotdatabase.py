@@ -151,7 +151,7 @@ class FanbotDatabase:
                 if len(artist.guilds) == 0:
                     self.delete_artist_by_id(artist_id)
 
-    def does_guild_follow_artist(self, artist_id, guild_id):
+    def does_guild_follow_artist(self, guild_id, artist_id):
         with self.session_scope() as session:
             association = session.query(FollowedArtist).filter_by(artist_id=artist_id, guild_id=guild_id).first()
             return association is not None
