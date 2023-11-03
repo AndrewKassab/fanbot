@@ -10,6 +10,7 @@ from settings import FOLLOW_ROLE_EMOJI, UNFOLLOW_ROLE_EMOJI, FOLLOW_COMMAND, SET
 ATTEMPT_FOLLOW_MESSAGE = "'Attempting to follow artist...'"
 CONFIGURE_CHANNEL_MESSAGE = f"A server admin must first use `/{SET_COMMAND}` to configure a channel to send updates to."
 ARTIST_NOT_FOUND_MESSAGE = "Artist not found, please make sure you are providing a valid spotify artist url"
+MISSING_MANAGE_ROLES_MESSAGE = "Bot is missing Manage Roles permission."
 
 
 class Follow(commands.Cog):
@@ -41,7 +42,7 @@ class Follow(commands.Cog):
         try:
             role = await self.get_role_for_artist(artist, interaction.guild_id)
         except Forbidden:
-            await interaction.edit_original_response(content='Bot is missing Manage Roles permission.')
+            await interaction.edit_original_response(content=MISSING_MANAGE_ROLES_MESSAGE)
             return
 
         try:

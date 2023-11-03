@@ -18,6 +18,7 @@ class TestFollow(IsolatedAsyncioTestCase):
         self.mock_interaction.response = AsyncMock(spec=discord.InteractionResponse)
         self.mock_edit = self.mock_interaction.edit_original_response
 
+
     async def test_send_message_on_command(self):
         await self.cog.follow_artist.callback(self.cog, self.mock_interaction, "some_artist_link")
         self.mock_interaction.response.send_message.assert_called_once_with(
@@ -32,6 +33,12 @@ class TestFollow(IsolatedAsyncioTestCase):
     async def test_invalid_artist_follow_attempt(self, mock_get_artist_by_link):
         await self.cog.follow_artist.callback(self.cog, self.mock_interaction, "some_artist_link")
         self.mock_edit.assert_called_once_with(content=ARTIST_NOT_FOUND_MESSAGE)
+
+    @patch('bot.cogs.follow.Follow.get_role_for_artist', side_effect=Forbidden)
+    async def test_bot_forbidden_manage_roles(self, mock_get_role_for_artist):
+        self.mock_sp.get_artist_by_link.return_value = Mock()
+        await self.cog.follow_artist.callback(self.cog, self.mock_interaction, "some_artist_link")
+        self.mock_edit.assert_called_once_with(content=MISSING_MANAGE_ROLES_MESSAGE)
 
     async def test_get_role_for_artist_already_exists(self):
         with patch("bot.cogs.follow.get", return_value=Mock(id=20)) as mock_get:

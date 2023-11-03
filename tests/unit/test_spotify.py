@@ -6,31 +6,33 @@ from unittest.mock import patch, AsyncMock, MagicMock, Mock
 
 class TestSpotify(IsolatedAsyncioTestCase):
 
-    def setUp(self):
-        self.valid_artist = 'https://open.spotify.com/artist/3dz0NnIZhtKKeXZxLOxCam?si=522cf0f2c0bd4f6f'
-        self.valid_artist_true_id = '3dz0NnIZhtKKeXZxLOxCam'
+    @classmethod
+    def setUpClass(cls):
+        cls.valid_artist = 'https://open.spotify.com/artist/3dz0NnIZhtKKeXZxLOxCam?si=522cf0f2c0bd4f6f'
+        cls.valid_artist_true_id = '3dz0NnIZhtKKeXZxLOxCam'
 
         curr_date = datetime.now(tz=pytz.utc).astimezone(pytz.timezone('US/Pacific'))
         curr_date_formatted = curr_date.strftime('%Y-%m-%d')
         two_days_ago_formatted = (curr_date - timedelta(days=2)).strftime('%Y-%m-%d')
 
-        self.new_album_release = {
+        cls.new_album_release = {
             'id': 'album',
             'release_date': curr_date_formatted
         }
-        self.old_album_release = {
+        cls.old_album_release = {
             'id': 'album',
             'release_date': two_days_ago_formatted
         }
-        self.new_single_release = {
+        cls.new_single_release = {
             'id': 'single',
             'release_date': curr_date_formatted
         }
-        self.old_single_release = {
+        cls.old_single_release = {
             'id': 'single',
             'release_date': two_days_ago_formatted
         }
 
+    def setUp(self):
         self.mock_sp = MagicMock(spec = spotify.Client)
         self.mock_sp.http = MagicMock()
         self.mock_sp.http.artist_albums = AsyncMock()
