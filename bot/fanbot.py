@@ -1,6 +1,6 @@
 from services.fanbotdatabase import FanbotDatabase
 from discord.ext import commands
-import cogs
+import bot.cogs
 import discord
 from settings import logging
 

@@ -11,8 +11,8 @@ Base = declarative_base()
 
 FollowedArtist = Table('FollowedArtist', Base.metadata,
     Column('id', Integer, primary_key=True, autoincrement=True),
-    Column('artist_id', String(25), ForeignKey('Artists.id'), on_delete='CASCADE'),
-    Column('guild_id', String(25), ForeignKey('Guilds.id'), on_delete='CASCADE')
+    Column('artist_id', String(25), ForeignKey('Artists.id')),
+    Column('guild_id', String(25), ForeignKey('Guilds.id'))
 )
 
 
@@ -24,7 +24,7 @@ class Artist(Base):
     latest_release_id = Column(String(25))
     latest_release_name = Column(String(100))
 
-    guilds = relationship("Guild", secondary=FollowedArtist, back_populates="artists", cascade="all, delete-orphan")
+    guilds = relationship("Guild", secondary=FollowedArtist, back_populates="artists", cascade="all, delete")
 
 
 class Guild(Base):
@@ -33,7 +33,7 @@ class Guild(Base):
     id = Column(String(25), primary_key=True)
     music_channel_id = Column(BigInteger)
 
-    artists = relationship("Artist", secondary=FollowedArtist, back_populates="guilds", cascade="all, delete_orphan")
+    artists = relationship("Artist", secondary=FollowedArtist, back_populates="guilds", cascade="all, delete")
 
 
 class FanbotDatabase:

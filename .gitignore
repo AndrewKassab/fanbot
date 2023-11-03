@@ -8,3 +8,4 @@ tests/__pycache__/
 *.env
 _trial_temp/
 /tests/unit/_trial_temp.lock
+.coverage

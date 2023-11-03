@@ -68,5 +68,3 @@ def is_release_new(release):
                                                    curr_date.time() >= time(21, 0)):
         return True
     return False
-
-

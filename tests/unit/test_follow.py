@@ -1,5 +1,5 @@
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import patch, AsyncMock, MagicMock, Mock
 
 from bot.cogs.follow import *
 from bot.fanbot import FanBot
@@ -18,14 +18,10 @@ class TestFollow(IsolatedAsyncioTestCase):
         self.mock_interaction.response = AsyncMock(spec=discord.InteractionResponse)
         self.mock_edit = self.mock_interaction.edit_original_response
 
-    async def test_get_role_for_artist_already_exists(self):
-
-
-    async def test_get_role_for_artist_new_artist(self):
-
     async def test_send_message_on_command(self):
-        await self.cog.follow_artist(self.mock_interaction, "some_artist_link")
-        self.mock_interaction.send_message.assert_called_once_with(ATTEMPT_FOLLOW_MESSAGE, ephemeral=True)
+        await self.cog.follow_artist.callback(self.cog, self.mock_interaction, "some_artist_link")
+        self.mock_interaction.response.send_message.assert_called_once_with(
+            ATTEMPT_FOLLOW_MESSAGE, ephemeral=True)
 
     async def test_guild_not_in_db(self):
         with patch.object(self.cog.bot.db, 'is_guild_exist', return_value=False):
@@ -37,11 +33,12 @@ class TestFollow(IsolatedAsyncioTestCase):
         await self.cog.follow_artist.callback(self.cog, self.mock_interaction, "some_artist_link")
         self.mock_edit.assert_called_once_with(content=ARTIST_NOT_FOUND_MESSAGE)
 
+    async def test_get_role_for_artist_already_exists(self):
+        with patch("bot.cogs.follow.get", return_value=Mock(id=20)) as mock_get:
+            returned_role_id = await self.cog.get_role_for_artist(Mock(), Mock())
+            mock_get.assert_called()
+            self.assertEqual(returned_role_id, 20)
 
-
-
-
-
-
-
-
+    async def test_get_role_for_artist_not_exist(self):
+        pass
+        #with patch.object(self.bot.db, 'is_artist_exist', return_value=False):
