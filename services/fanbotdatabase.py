@@ -11,8 +11,8 @@ Base = declarative_base()
 
 FollowedArtist = Table('FollowedArtist', Base.metadata,
     Column('id', Integer, primary_key=True, autoincrement=True),
-    Column('artist_id', String(25), ForeignKey('Artists.id')),
-    Column('guild_id', String(25), ForeignKey('Guilds.id'))
+    Column('artist_id', String(25), ForeignKey('Artists.id'), on_delete='CASCADE'),
+    Column('guild_id', String(25), ForeignKey('Guilds.id'), on_delete='CASCADE')
 )
 
 
@@ -24,7 +24,7 @@ class Artist(Base):
     latest_release_id = Column(String(25))
     latest_release_name = Column(String(100))
 
-    guilds = relationship("Guild", secondary=FollowedArtist, back_populates="artists")
+    guilds = relationship("Guild", secondary=FollowedArtist, back_populates="artists", cascade="all, delete-orphan")
 
 
 class Guild(Base):
@@ -33,7 +33,7 @@ class Guild(Base):
     id = Column(String(25), primary_key=True)
     music_channel_id = Column(BigInteger)
 
-    artists = relationship("Artist", secondary=FollowedArtist, back_populates="guilds")
+    artists = relationship("Artist", secondary=FollowedArtist, back_populates="guilds", cascade="all, delete_orphan")
 
 
 class FanbotDatabase:
@@ -43,8 +43,7 @@ class FanbotDatabase:
         self.Session = sessionmaker(bind=self.engine)
         self.guilds = {}
         self.artists = {}
-        self.load_all_guilds()
-        self.load_all_artists()
+        self.load_cache()
 
     @contextmanager
     def session_scope(self):
@@ -58,15 +57,12 @@ class FanbotDatabase:
         finally:
             session.close()
 
-    def load_all_guilds(self):
+    def load_cache(self):
         with self.session_scope() as session:
             for guild in session.query(Guild).all():
                 self.guilds[guild.id] = guild
-
-    def load_all_artists(self):
-        with self.session_scope() as session:
-            for artist in session.query(Artist).all():
-                self.artists[artist.id] = artist
+                for artist in guild.artists:
+                    self.artists[artist.id] = artist
 
     def get_guild_by_id(self, guild_id):
         return self.guilds.get(guild_id)
@@ -95,7 +91,6 @@ class FanbotDatabase:
             guild = session.query(Guild).filter_by(id=guild_id).first()
             if guild:
                 for artist in guild.artists:
-                    artist.guilds.remove(guild)
                     if artist.id in self.artists:
                         self.artists[artist.id].guilds.remove(guild)
                 session.delete(guild)
@@ -134,12 +129,9 @@ class FanbotDatabase:
             artist = session.query(Artist).filter_by(id=artist_id).first()
             if artist:
                 for guild in artist.guilds:
-                    guild.artists.remove(artist)
                     if guild.id in self.guilds:
                         self.guilds[guild.id].artists.remove(artist)
-
                 session.delete(artist)
-
                 if artist_id in self.artists:
                     del self.artists[artist_id]
 
@@ -158,3 +150,8 @@ class FanbotDatabase:
                     artist.guilds.remove(guild)
                 if len(artist.guilds) == 0:
                     self.delete_artist_by_id(artist_id)
+
+    def does_guild_follow_artist(self, artist_id, guild_id):
+        with self.session_scope() as session:
+            association = session.query(FollowedArtist).filter_by(artist_id=artist_id, guild_id=guild_id).first()
+            return association is not None

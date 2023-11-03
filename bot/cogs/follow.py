@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError
 
 ATTEMPT_FOLLOW_MESSAGE = "'Attempting to follow artist...'"
 CONFIGURE_CHANNEL_MESSAGE = f"A server admin must first use `/{SET_COMMAND}` to configure a channel to send updates to."
+ARTIST_NOT_FOUND_MESSAGE = "Artist not found, please make sure you are providing a valid spotify artist url"
 
 
 class Follow(commands.Cog):
@@ -32,8 +33,7 @@ class Follow(commands.Cog):
         try:
             artist = await sp.get_artist_by_link(artist_link)
         except sp.InvalidArtistException:
-            await interaction.edit_original_response(
-                content="Artist not found, please make sure you are providing a valid spotify artist url")
+            await interaction.edit_original_response(content=ARTIST_NOT_FOUND_MESSAGE)
             return
 
         guild_id = interaction.guild_id
@@ -43,7 +43,7 @@ class Follow(commands.Cog):
             await interaction.edit_original_response(content='Bot is missing Manage Roles permission.')
             return
 
-        try:
+        if self.bot.db.get_guild_by_id(guild_id).artists
             self.bot.db.add_artist(artist)
             await self.send_successful_follow_message(artist, interaction)
         except IntegrityError:

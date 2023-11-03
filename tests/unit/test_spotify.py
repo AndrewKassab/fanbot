@@ -69,7 +69,7 @@ class TestSpotify(IsolatedAsyncioTestCase):
 
     async def test_get_newest_release_no_new_release(self):
         with patch('services.spotify.spotify.Client', return_value=self.mock_sp):
-            self.mock_sp.http.artist_albums.side_effect = self.mock_artist_albums_no_new
+            self.mock_sp.http.artist_albums = self.mock_artist_albums_no_new
 
             newest_release = await get_newest_release_by_artist('someid')
             self.assertIsNone(newest_release)
