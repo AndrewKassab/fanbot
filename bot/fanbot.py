@@ -1,3 +1,4 @@
+import bot.cogs as cogs
 from services.fanbotdatabase import FanbotDatabase
 from discord.ext import commands
 import bot.cogs
