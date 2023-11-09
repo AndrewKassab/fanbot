@@ -10,9 +10,9 @@ Base = declarative_base()
 
 
 FollowedArtist = Table('FollowedArtist', Base.metadata,
-    Column('id', Integer, primary_key=True, autoincrement=True),
-    Column('artist_id', String(25), ForeignKey('Artists.id')),
-    Column('guild_id', String(25), ForeignKey('Guilds.id'))
+                       Column('id', Integer, primary_key=True, autoincrement=True),
+                       Column('artist_id', String(25), ForeignKey('Artists.id')),
+                       Column('guild_id', String(25), ForeignKey('Guilds.id'))
 )
 
 
@@ -38,24 +38,29 @@ class Guild(Base):
 
 class FanbotDatabase:
 
-    def __init__(self):
+    def __init__(self, session=None):
         self.engine = create_engine(db_url)
         self.Session = sessionmaker(bind=self.engine)
+        self._session = session
+
         self.guilds = {}
         self.artists = {}
         self.load_cache()
 
     @contextmanager
     def session_scope(self):
-        session = self.Session()
-        try:
-            yield session
-            session.commit()
-        except:
-            session.rollback()
-            raise
-        finally:
-            session.close()
+        if self._session:
+            yield self._session
+        else:
+            session = self.Session()
+            try:
+                yield session
+                session.commit()
+            except:
+                session.rollback()
+                raise
+            finally:
+                session.close()
 
     def load_cache(self):
         with self.session_scope() as session:
