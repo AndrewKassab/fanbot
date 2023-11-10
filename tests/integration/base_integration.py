@@ -15,17 +15,15 @@ class BaseIntegrationTest(TestCase):
         cls.existing_guild = Guild(id='1004184458431315989', music_channel_id='1004184459190480938')
         cls.existing_artist = Artist(id='4pb4rqWSoGUgxm63xmJ8xc', name='Madeon')
 
-        cls.new_guild = Guild(id='1032787094474600461', music_channel_id='new guild music channel id')
-        cls.new_artist = Artist(id='3dz0NnIZhtKKeXZxLOxCam', name='Porter Robinson', latest_release_id=None,
-                                latest_release_name=None)
 
         session = cls.Session()
 
-        session.add(Guild(id=cls.existing_guild.id, music_channel_id=cls.existing_guild.music_channel_id))
-        session.add(Artist(id=cls.existing_artist.id, name=cls.existing_artist.name))
-        session.commit()
+        guild_created = Guild(id=cls.existing_guild.id, music_channel_id=cls.existing_guild.music_channel_id)
+        artist_created = Artist(id=cls.existing_artist.id, name=cls.existing_artist.name)
+        session.add(guild_created)
+        session.add(artist_created)
 
-        cls.existing_guild.artists.append(cls.existing_artist)
+        guild_created.artists.append(artist_created)
         session.commit()
 
         session.close()
@@ -36,6 +34,10 @@ class BaseIntegrationTest(TestCase):
         cls.engine.dispose()
 
     def setUp(self):
+        self.new_guild = Guild(id='1032787094474600461', music_channel_id='1032787094474600461')
+        self.new_artist = Artist(id='3dz0NnIZhtKKeXZxLOxCam', name='Porter Robinson', latest_release_id=None,
+                                latest_release_name=None)
+
         self.session = self.Session()
         self.db = FanbotDatabase(self.session)
 
