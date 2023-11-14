@@ -4,7 +4,7 @@ from unittest import IsolatedAsyncioTestCase
 from unittest.mock import patch, AsyncMock, MagicMock, Mock
 
 
-class TestSpotify(IsolatedAsyncioTestCase):
+class SpotifyTest(IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(cls):

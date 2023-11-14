@@ -11,7 +11,7 @@ artist = Artist(name="Madeon", id="12345")
 mock_role = Mock(id="12345", spec=discord.Role)
 
 
-class TestFollow(IsolatedAsyncioTestCase):
+class FollowTest(IsolatedAsyncioTestCase):
 
     def setUp(self):
         bot = AsyncMock(spec=FanBot)
