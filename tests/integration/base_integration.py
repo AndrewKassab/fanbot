@@ -15,7 +15,6 @@ class BaseIntegrationTest(TestCase):
         cls.existing_guild = Guild(id='1004184458431315989', music_channel_id='1004184459190480938')
         cls.existing_artist = Artist(id='4pb4rqWSoGUgxm63xmJ8xc', name='Madeon')
 
-
         session = cls.Session()
 
         guild_created = Guild(id=cls.existing_guild.id, music_channel_id=cls.existing_guild.music_channel_id)
