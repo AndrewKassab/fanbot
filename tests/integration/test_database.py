@@ -1,7 +1,7 @@
 import sqlalchemy.exc
 
 from tests.integration.base_integration import BaseIntegrationTest
-from services.fanbotdatabase import Guild, Artist
+from services.fanbotdatabase import Guild, Artist, FanbotDatabase
 
 
 class DatabaseTest(BaseIntegrationTest):
@@ -16,6 +16,7 @@ class DatabaseTest(BaseIntegrationTest):
 
     def setUp(self):
         super().setUp()
+        self.db = FanbotDatabase(self.session)
 
     def tearDown(self):
         super().tearDown()

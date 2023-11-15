@@ -22,4 +22,4 @@ class FanBot(commands.Bot):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        logging.info('We have logged in as {0.user}'.format(bot))
+        logging.info('Fanbot has come online')

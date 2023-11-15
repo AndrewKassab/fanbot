@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 
-from settings import db_url
+from settings import DB_URL
 from sqlalchemy import Column, String, Integer, ForeignKey, BigInteger, create_engine, Table
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -39,7 +39,7 @@ class Guild(Base):
 class FanbotDatabase:
 
     def __init__(self, session=None):
-        self.engine = create_engine(db_url)
+        self.engine = create_engine(DB_URL)
         self.Session = sessionmaker(bind=self.engine)
         self._session = session
 

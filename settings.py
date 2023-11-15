@@ -17,10 +17,11 @@ SP_CLIENT_ID = os.environ.get("SP_CLIENT_ID")
 SP_CLIENT_SECRET = os.environ.get("SP_CLIENT_SECRET")
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
 
-TEST_DB_NAME = 'fanbottest'
+TEST_GUILD_ONE_ID = os.environ.get("TEST_GUILD_ONE_ID")
+TEST_GUILD_TWO_ID = os.environ.get("TEST_GUILD_TWO_ID")
+TEST_GUILD_ONE_MUSIC_CHANNEL_ID = os.environ.get("TEST_GUILD_ONE_MUSIC_CHANNEL_ID")
 
-db_url = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
-test_db_url = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{TEST_DB_NAME}'
+DB_URL = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 
 # Slash Command names
 SET_COMMAND = "setchannel"

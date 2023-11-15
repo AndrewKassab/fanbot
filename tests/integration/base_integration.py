@@ -1,18 +1,18 @@
 from unittest import TestCase
 
 from services.fanbotdatabase import *
-from settings import test_db_url
+from settings import DB_URL, TEST_GUILD_ONE_ID, TEST_GUILD_ONE_MUSIC_CHANNEL_ID
 
 
 class BaseIntegrationTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.engine = create_engine(test_db_url)
+        cls.engine = create_engine(DB_URL)
         Base.metadata.create_all(cls.engine)
         cls.Session = sessionmaker(bind=cls.engine)
 
-        cls.existing_guild = Guild(id='1004184458431315989', music_channel_id='1004184459190480938')
+        cls.existing_guild = Guild(id=TEST_GUILD_ONE_ID, music_channel_id=TEST_GUILD_ONE_MUSIC_CHANNEL_ID)
         cls.existing_artist = Artist(id='4pb4rqWSoGUgxm63xmJ8xc', name='Madeon')
 
         session = cls.Session()
@@ -38,7 +38,6 @@ class BaseIntegrationTest(TestCase):
                                 latest_release_name=None)
 
         self.session = self.Session()
-        self.db = FanbotDatabase(self.session)
 
     def tearDown(self):
         self.session.rollback()
