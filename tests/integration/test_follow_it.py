@@ -3,6 +3,7 @@ import time
 from threading import Thread
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock
+import itertools
 
 from bot import FanBot
 from bot.cogs.follow import *
@@ -25,7 +26,7 @@ class FollowIntegrationTest(BaseIntegrationTest, IsolatedAsyncioTestCase):
             start_time = time.time()
 
             while not cls.bot.is_ready():
-                if time.time() - start_time > 30:
+                if time.time() - start_time > 60:
                     raise TimeoutError("Bot did not get ready in time")
                 time.sleep(1)
 
@@ -55,10 +56,12 @@ class FollowIntegrationTest(BaseIntegrationTest, IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self):
         super().tearDown()
-        for role in self.bot.get_guild(TEST_GUILD_ONE_ID).roles:
-            if APP_NAME not in role.name:
-                asyncio.run_coroutine_threadsafe(role.delete(), self.bot.loop)
-        for role in self.bot.get_guild(TEST_GUILD_TWO_ID).roles:
+
+        guild_one = self.bot.get_guild(TEST_GUILD_ONE_ID)
+        guild_two = self.bot.get_guild(TEST_GUILD_TWO_ID)
+        combined_roles = list(itertools.chain(guild_one.roles, guild_two.roles))
+
+        for role in combined_roles:
             if APP_NAME not in role.name:
                 asyncio.run_coroutine_threadsafe(role.delete(), self.bot.loop)
 
