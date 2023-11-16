@@ -12,7 +12,7 @@ Base = declarative_base()
 FollowedArtist = Table('FollowedArtist', Base.metadata,
                        Column('id', Integer, primary_key=True, autoincrement=True),
                        Column('artist_id', String(25), ForeignKey('Artists.id')),
-                       Column('guild_id', String(25), ForeignKey('Guilds.id'))
+                       Column('guild_id', BigInteger, ForeignKey('Guilds.id'))
 )
 
 
@@ -30,8 +30,8 @@ class Artist(Base):
 class Guild(Base):
     __tablename__ = "Guilds"
 
-    id = Column(String(25), primary_key=True)
-    music_channel_id = Column(String(25))
+    id = Column(BigInteger, primary_key=True)
+    music_channel_id = Column(BigInteger)
 
     artists = relationship("Artist", secondary=FollowedArtist, back_populates="guilds", cascade="all, delete")
 

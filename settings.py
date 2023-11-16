@@ -8,6 +8,8 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s;%(levelname)s;%(message)s")
 
+APP_NAME = 'Fanbot'
+
 # Environment Variables
 DB_HOST = os.environ.get("DB_HOST")
 DB_USER = os.environ.get("DB_USER")
@@ -17,9 +19,9 @@ SP_CLIENT_ID = os.environ.get("SP_CLIENT_ID")
 SP_CLIENT_SECRET = os.environ.get("SP_CLIENT_SECRET")
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
 
-TEST_GUILD_ONE_ID = os.environ.get("TEST_GUILD_ONE_ID")
-TEST_GUILD_TWO_ID = os.environ.get("TEST_GUILD_TWO_ID")
-TEST_GUILD_ONE_MUSIC_CHANNEL_ID = os.environ.get("TEST_GUILD_ONE_MUSIC_CHANNEL_ID")
+TEST_GUILD_ONE_ID = int(os.environ.get("TEST_GUILD_ONE_ID"))
+TEST_GUILD_TWO_ID = int(os.environ.get("TEST_GUILD_TWO_ID"))
+TEST_GUILD_ONE_MUSIC_CHANNEL_ID = int(os.environ.get("TEST_GUILD_ONE_MUSIC_CHANNEL_ID"))
 
 DB_URL = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 

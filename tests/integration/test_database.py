@@ -61,7 +61,7 @@ class DatabaseTest(BaseIntegrationTest):
             self.session.flush()
 
     def test_update_guild(self):
-        new_music_channel_id = '12345'
+        new_music_channel_id = 12345
 
         self.existing_guild.music_channel_id = new_music_channel_id
         self.db.update_guild(self.existing_guild)

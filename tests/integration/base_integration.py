@@ -33,7 +33,7 @@ class BaseIntegrationTest(TestCase):
         cls.engine.dispose()
 
     def setUp(self):
-        self.new_guild = Guild(id='1032787094474600461', music_channel_id='1032787094474600461')
+        self.new_guild = Guild(id=1032787094474600461, music_channel_id=1032787094474600461)
         self.new_artist = Artist(id='3dz0NnIZhtKKeXZxLOxCam', name='Porter Robinson', latest_release_id=None,
                                 latest_release_name=None)
 
