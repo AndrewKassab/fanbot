@@ -1,3 +1,4 @@
+import helpers
 import services.spotify as sp
 from discord.ext import commands
 from discord.errors import Forbidden
@@ -63,7 +64,7 @@ class Follow(commands.Cog):
         if self.bot.db.is_artist_exist(artist.id):
             role = get(guild.roles, name=f"{artist.name}Fan")
         if role is None:
-            role = await guild.create_role(name=(artist.name.replace(" ", "") + 'Fan'), mentionable=True)
+            role = await guild.create_role(name=helpers.get_fan_role_name(artist.name), mentionable=True)
         return role
 
     async def handle_follow_artist_for_guild(self, interaction, artist, role):
@@ -72,7 +73,7 @@ class Follow(commands.Cog):
                 content=ALREADY_FOLLOW_FORMAT_MESSAGE % artist.name)
         else:
             if self.bot.db.get_artist_by_id(artist.id) is None:
-                self.bot.db.add_new_artist(artist, interaction.guild_id)
+                self.bot.db.add_new_artist(artist.id, artist.name, interaction.guild_id)
             else:
                 self.bot.db.follow_existing_artist_for_guild(artist.id, interaction.guild_id)
             await self.send_successful_follow_message(artist, interaction, role.id)

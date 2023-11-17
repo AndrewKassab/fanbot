@@ -112,16 +112,16 @@ class DatabaseTest(BaseIntegrationTest):
         self.assertEqual(0, len(returned_artists))
 
     def test_add_artist_new_artist(self):
-        self.db.add_new_artist(self.new_artist, self.existing_guild.id)
+        self.db.add_new_artist(self.new_artist.id, self.new_artist.name, self.existing_guild.id)
 
         added_artist = self.session.query(Artist).filter(Artist.id == self.new_artist.id).first()
 
-        self.assertEqual(self.new_artist, added_artist)
-        self.assertEqual(added_artist, self.db.get_artist_by_id(added_artist.id))
+        self.assertEqual(self.new_artist.id, added_artist.id)
+        self.assertEqual(added_artist.name, self.db.get_artist_by_id(added_artist.id).name)
 
     def test_add_artist_existing_artist(self):
         with self.assertRaises(sqlalchemy.exc.IntegrityError):
-            self.db.add_new_artist(self.existing_artist, self.existing_guild.id)
+            self.db.add_new_artist(self.existing_artist.id, self.existing_artist.name, self.existing_guild.id)
             self.session.flush()
 
     def test_update_artist(self):

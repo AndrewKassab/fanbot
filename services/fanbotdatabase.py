@@ -112,7 +112,8 @@ class FanbotDatabase:
         return list(self.artists.values())
 
     # Artists are only ever added when a guild initially follows them
-    def add_new_artist(self, artist, guild_id):
+    def add_new_artist(self, artist_id, artist_name, guild_id):
+        artist = Artist(id=artist_id, name=artist_name)
         with self.session_scope() as session:
             guild = self.guilds.get(guild_id)
             if guild is not None:
