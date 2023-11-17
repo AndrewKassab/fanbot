@@ -4,7 +4,7 @@ from services.fanbotdatabase import *
 from settings import DB_URL, TEST_GUILD_ONE_ID, TEST_GUILD_ONE_MUSIC_CHANNEL_ID
 
 
-class BaseIntegrationTest(TestCase):
+class IntegrationTest(TestCase):
 
     @classmethod
     def setUpClass(cls):

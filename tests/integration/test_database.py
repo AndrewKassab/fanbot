@@ -1,10 +1,10 @@
 import sqlalchemy.exc
 
-from tests.integration.base_integration import BaseIntegrationTest
+from tests.integration.base_integration import IntegrationTest
 from services.fanbotdatabase import Guild, Artist, FanbotDatabase
 
 
-class DatabaseTest(BaseIntegrationTest):
+class DatabaseTest(IntegrationTest):
 
     @classmethod
     def setUpClass(cls):
