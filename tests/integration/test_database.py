@@ -170,8 +170,9 @@ class DatabaseTest(IntegrationTest):
 
     def test_unfollow_artist_for_guild_artist_still_exists(self):
         artist = self.session.query(Artist).filter(Artist.id == self.existing_artist.id).first()
-        self.session.add(self.new_guild)
-        artist.guilds.append(self.new_guild)
+        new_guild_db = Guild(id=self.new_guild.id, music_channel_id=self.new_guild.music_channel_id)
+        self.session.add(new_guild_db)
+        artist.guilds.append(new_guild_db)
         self.db.load_cache()
 
         self.db.unfollow_artist_for_guild(artist.id, self.existing_guild.id)
@@ -184,14 +185,15 @@ class DatabaseTest(IntegrationTest):
         artist_cached = self.db.get_artist_by_id(self.existing_artist.id)
 
         self.assertEqual(0, len(existing_guild_db.artists))
-        self.assertEqual(1, len(self.new_guild.artists))
+        self.assertEqual(1, len(new_guild_db.artists))
         self.assertEqual(1, len(artist.guilds))
         self.assertEqual(0, len(existing_guild_cached.artist_ids))
         self.assertEqual(1, len(new_guild_cached.artist_ids))
         self.assertEqual(1, len(artist_cached.guild_ids))
 
     def test_follow_existing_artist_for_guild(self):
-        self.session.add(self.new_artist)
+        new_artist_db = Artist(id=self.new_artist.id, name=self.new_artist.name)
+        self.session.add(new_artist_db)
 
         self.db.follow_existing_artist_for_guild(self.new_artist.id, self.existing_guild.id)
         self.session.flush()
@@ -203,14 +205,15 @@ class DatabaseTest(IntegrationTest):
 
         self.assertEqual(2, len(guild_db.artists))
         self.assertEqual(2, len(guild_cached.artist_ids))
-        self.assertEqual(1, len(self.new_artist.guilds))
+        self.assertEqual(1, len(new_artist_db.guilds))
         self.assertEqual(1, len(artist_cached.guild_ids))
 
     def test_does_guild_follow_artist_true(self):
         self.assertTrue(self.db.does_guild_follow_artist(self.existing_guild.id, self.existing_artist.id))
 
     def test_does_guild_follow_artist_false(self):
-        self.session.add(self.new_artist)
+        new_artist_db = Artist(id=self.new_artist.id, name=self.new_artist.name)
+        self.session.add(new_artist_db)
         self.assertFalse(self.db.does_guild_follow_artist(self.existing_guild.id, self.new_artist.id))
 
 

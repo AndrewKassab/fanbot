@@ -48,7 +48,7 @@ class BotIntegrationTest(IntegrationTest, IsolatedAsyncioTestCase):
         guild_one = self.bot.get_guild(TEST_GUILD_ONE_ID)
         role_name = get_fan_role_name(self.existing_artist.name)
 
-        self.existing_role = await self.run_threadsafe(guild_one.create_role, name=role_name, mentionable=True)
+        self.guild_one_existing_artist_role = await self.run_threadsafe(guild_one.create_role, name=role_name, mentionable=True)
 
         self.guild_one_channel = self.bot.get_channel(TEST_GUILD_ONE_MUSIC_CHANNEL_ID)
         self.guild_two_channel = self.bot.get_channel(TEST_GUILD_TWO_MUSIC_CHANNEL_ID)

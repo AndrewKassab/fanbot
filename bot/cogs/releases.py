@@ -1,4 +1,5 @@
 import asyncio
+import copy
 from datetime import datetime, timedelta
 import pytz
 from discord.ext import commands, tasks
@@ -46,7 +47,7 @@ class Releases(commands.Cog):
                 newest_release['name'] == artist.latest_release_name:
             return
 
-        for guild_id in artist.guild_ids:
+        for guild_id in copy.deepcopy(artist.guild_ids):
             guild = self.bot.db.get_guild_by_id(guild_id)
             if self.bot.get_guild(guild.id) is None:
                 self.bot.db.delete_guild_by_id(guild.id)
@@ -59,7 +60,8 @@ class Releases(commands.Cog):
             else:
                 logging.info(f"Notifying a new release by artist id {role_ids[0]} to Guild {guild.id}")
                 channel = self.bot.get_guild(guild.id).get_channel(guild.music_channel_id)
-                await self.notify_release(newest_release, role_ids, channel)
+                if channel is not None:
+                    await self.notify_release(newest_release, role_ids, channel)
 
     async def notify_release(self, release, role_ids, channel):
         release_url = release['url'] if 'url' in release.keys() else release['external_urls']['spotify']

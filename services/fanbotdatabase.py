@@ -82,8 +82,8 @@ class FanbotDatabase:
         self.Session = sessionmaker(bind=self.engine)
         self._session = session
 
-        self.guilds = {}
-        self.artists = {}
+        self._guilds = {}
+        self._artists = {}
         self.load_cache()
 
     @contextmanager
@@ -102,91 +102,103 @@ class FanbotDatabase:
                 session.close()
 
     def load_cache(self):
-        self.guilds = {}
-        self.artists = {}
+        self._guilds = {}
+        self._artists = {}
+
         with self.session_scope() as session:
             for guild in session.query(Guild).all():
-                self.guilds[guild.id] = guild_to_dto(guild)
+                self._guilds[guild.id] = guild_to_dto(guild)
+
             for artist in session.query(Artist).all():
-                self.artists[artist.id] = artist_to_dto(artist)
+                self._artists[artist.id] = artist_to_dto(artist)
 
     def get_guild_by_id(self, guild_id):
-        return self.guilds.get(guild_id)
+        return self._guilds.get(guild_id)
 
     def get_all_guilds(self):
-        return list(self.guilds.values())
+        return list(self._guilds.values())
 
     def add_guild(self, guild_id, music_channel_id):
         with self.session_scope() as session:
             guild = Guild(id=guild_id, music_channel_id=music_channel_id)
+
             session.add(guild)
-            self.guilds[guild_id] = guild_to_dto(guild)
+            self._guilds[guild_id] = guild_to_dto(guild)
 
     def update_guild(self, updated_guild):
         with self.session_scope() as session:
             guild = session.query(Guild).filter_by(id=updated_guild.id).first()
+
             if guild:
                 guild.music_channel_id = updated_guild.music_channel_id
-                self.guilds[updated_guild.id] = updated_guild
+                self._guilds[updated_guild.id] = updated_guild
                 session.commit()
 
     def delete_guild_by_id(self, guild_id):
         with self.session_scope() as session:
             guild = session.query(Guild).filter_by(id=guild_id).first()
+
             if guild:
                 for artist in guild.artists:
-                    if artist.id in self.artists:
-                        self.artists[artist.id].guild_ids.remove(guild_id)
-                        if len(self.artists[artist.id].guild_ids) == 0:
+                    if artist.id in self._artists:
+                        self._artists[artist.id].guild_ids.remove(guild_id)
+                        if len(self._artists[artist.id].guild_ids) == 0:
                             self.delete_artist_by_id(artist.id)
+
                 session.delete(guild)
-                if guild_id in self.guilds:
-                    del self.guilds[guild_id]
+                if guild_id in self._guilds:
+                    del self._guilds[guild_id]
+
                 logging.info(f"Deleted guild {guild_id} and updated artist associations.")
 
     def is_guild_exist(self, guild_id):
-        return guild_id in self.guilds.keys()
+        return guild_id in self._guilds.keys()
 
     def get_artist_by_id(self, artist_id):
-        return self.artists.get(artist_id)
+        return self._artists.get(artist_id)
 
     def get_all_artists(self):
-        return list(self.artists.values())
+        return list(self._artists.values())
 
     # Artists are only ever added when a guild initially follows them
     def add_new_artist(self, artist_id, artist_name, guild_id):
         artist = Artist(id=artist_id, name=artist_name)
+
         with self.session_scope() as session:
             guild = session.query(Guild).filter(Guild.id == guild_id).first()
+
             if guild is not None:
                 session.add(artist)
                 artist.guilds.append(guild)
-                self.artists[artist.id] = artist_to_dto(artist)
-                self.guilds[guild_id].artist_ids.add(artist_id)
+
+                self._artists[artist.id] = artist_to_dto(artist)
+                self._guilds[guild_id].artist_ids.add(artist_id)
 
     def update_artist(self, updated_artist):
         with self.session_scope() as session:
             artist = session.query(Artist).filter_by(id=updated_artist.id).first()
+
             artist.name = updated_artist.name
             artist.latest_release_name = updated_artist.latest_release_name
             artist.latest_release_id = updated_artist.latest_release_id
 
             if artist:
-                self.artists[updated_artist.id] = updated_artist
+                self._artists[updated_artist.id] = updated_artist
 
     def delete_artist_by_id(self, artist_id):
         with self.session_scope() as session:
             artist = session.query(Artist).filter_by(id=artist_id).first()
+
             if artist:
-                for guild_id in self.artists[artist_id].guild_ids:
-                    if guild_id in self.guilds:
-                        self.guilds[guild_id].artist_ids.remove(artist.id)
+                for guild_id in self._artists[artist_id].guild_ids:
+                    if guild_id in self._guilds:
+                        self._guilds[guild_id].artist_ids.remove(artist.id)
                 session.delete(artist)
-                if artist_id in self.artists:
-                    del self.artists[artist_id]
+                if artist_id in self._artists:
+                    del self._artists[artist_id]
 
     def is_artist_exist(self, artist_id):
-        return artist_id in self.artists.keys()
+        return artist_id in self._artists.keys()
 
     def unfollow_artist_for_guild(self, artist_id, guild_id):
         with self.session_scope() as session:
@@ -194,10 +206,11 @@ class FanbotDatabase:
                 artist_id=artist_id, guild_id=guild_id).delete(synchronize_session='fetch')
             session.flush()
             session.expire_all()
-            artist = self.artists.get(artist_id)
+
+            artist = self._artists.get(artist_id)
             if guild_id in artist.guild_ids:
                 artist.guild_ids.remove(guild_id)
-                self.guilds.get(guild_id).artist_ids.remove(artist_id)
+                self._guilds.get(guild_id).artist_ids.remove(artist_id)
             if len(artist.guild_ids) == 0:
                 self.delete_artist_by_id(artist_id)
 
@@ -206,8 +219,8 @@ class FanbotDatabase:
             artist = session.query(Artist).filter(Artist.id == artist_id).first()
             guild = session.query(Guild).filter(Guild.id == guild_id).first()
             artist.guilds.append(guild)
-            self.artists[artist_id] = artist_to_dto(artist)
-            self.guilds[guild_id].artist_ids.add(artist_id)
+            self._artists[artist_id] = artist_to_dto(artist)
+            self._guilds[guild_id].artist_ids.add(artist_id)
 
     def does_guild_follow_artist(self, guild_id, artist_id):
-        return artist_id in self.guilds.get(guild_id).artist_ids
+        return artist_id in self._guilds.get(guild_id).artist_ids

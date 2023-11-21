@@ -52,7 +52,7 @@ class FollowIntegrationTest(BotIntegrationTest):
     async def test_follow_existing_artist_role_assigned(self):
         await self.run_threadsafe(
             self.cog.follow_artist.callback, self.cog, self.mock_interaction, EXISTING_ARTIST_LINK)
-        self.mock_interaction.user.add_roles.assert_called_once_with(self.existing_role)
+        self.mock_interaction.user.add_roles.assert_called_once_with(self.guild_one_existing_artist_role)
 
     async def test_follow_new_artist(self):
         await self.run_threadsafe(

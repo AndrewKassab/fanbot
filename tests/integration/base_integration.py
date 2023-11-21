@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from services.fanbotdatabase import *
-from settings import DB_URL, TEST_GUILD_ONE_ID, TEST_GUILD_ONE_MUSIC_CHANNEL_ID
+from settings import DB_URL, TEST_GUILD_ONE_ID, TEST_GUILD_ONE_MUSIC_CHANNEL_ID, TEST_GUILD_TWO_ID, TEST_GUILD_TWO_MUSIC_CHANNEL_ID
 
 
 class IntegrationTest(TestCase):
@@ -16,8 +16,8 @@ class IntegrationTest(TestCase):
             cls.existing_guild = GuildDTO(id=TEST_GUILD_ONE_ID, music_channel_id=TEST_GUILD_ONE_MUSIC_CHANNEL_ID)
             cls.existing_artist = ArtistDTO(id='4pb4rqWSoGUgxm63xmJ8xc', name='Madeon')
 
-            cls.new_guild = Guild(id=1032787094474600461, music_channel_id=1032787094474600461)
-            cls.new_artist = Artist(id='3dz0NnIZhtKKeXZxLOxCam', name='Porter Robinson')
+            cls.new_guild = GuildDTO(id=TEST_GUILD_TWO_ID, music_channel_id=TEST_GUILD_TWO_MUSIC_CHANNEL_ID)
+            cls.new_artist = ArtistDTO(id='3dz0NnIZhtKKeXZxLOxCam', name='Porter Robinson')
 
             session = cls.Session()
 
@@ -44,4 +44,3 @@ class IntegrationTest(TestCase):
     def tearDown(self):
         self.session.rollback()
         self.session.close()
-
