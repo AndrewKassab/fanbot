@@ -76,6 +76,7 @@ class BotIntegrationTest(IntegrationTest, IsolatedAsyncioTestCase):
         future = asyncio.run_coroutine_threadsafe(partial(), self.bot.loop)
         return future.result()
 
+    # must call with run_threadsafe
     async def get_recent_message_content(self, channel):
         messages = [message async for message in channel.history(limit=1)]
         if messages:

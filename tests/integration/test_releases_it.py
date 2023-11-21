@@ -16,15 +16,15 @@ class ReleasesIntegrationTest(BotIntegrationTest):
     guild_one and guild_two both exist
     artist_one and artist_two both exist
 
-    guild_two follows both artist_one and artist_two with roles for both existing
-    guild_one follows only artist_one
+    guild_one follows both artist_one and artist_two with roles for both existing
+    guild_two follows only artist_two
     '''
 
     @classmethod
     def setUpClass(cls):
         super(ReleasesIntegrationTest, cls).setUpClass()
 
-        cls.new_release_one_artist = {
+        cls.new_release_artist_one = {
             'id': '1',
             'name': 'Love You Back',
             'url': 'https://open.spotify.com/track/5wM6LOw2U6XeIFHfsgI6wU?si=4a0575adfae34c76',
@@ -36,10 +36,22 @@ class ReleasesIntegrationTest(BotIntegrationTest):
             ]
         }
 
+        cls.new_release_artist_two = {
+            'id': '1',
+            'name': 'Look at the Sky',
+            'url': 'https://open.spotify.com/track/5lXNcc8QeM9KpAWNHAL0iS?si=c5e9e825b02545cf',
+            'artists': [
+                {
+                    'id': cls.artist_two.id,
+                    'name': cls.artist_two.name
+                }
+            ]
+        }
+
         cls.new_release_two_artists = {
             'id': '2',
             'name': 'Shelter',
-            'url': 'https://open.spotify.com/track/5wM6LOw2U6XeIFHfsgI6wU?si=4a0575adfae34c76',
+            'url': 'https://open.spotify.com/track/2CgOd0Lj5MuvOqzqdaAXtS?si=6b872bcd516b469c',
             'artists': [
                 {
                     'id': cls.artist_one.id,
@@ -79,12 +91,12 @@ class ReleasesIntegrationTest(BotIntegrationTest):
         await super().asyncSetUp()
         guild_one = self.bot.get_guild(TEST_GUILD_ONE_ID)
         guild_two = self.bot.get_guild(TEST_GUILD_TWO_ID)
-        role_name_new_artist = get_fan_role_name(self.artist_two.name)
+        role_name_artist_two = get_fan_role_name(self.artist_two.name)
 
         self.guild_one_artist_two_role = await self.run_threadsafe(
-            guild_one.create_role, name=role_name_new_artist, mentionable=True)
-        self.guild_two_new_artist_role = await self.run_threadsafe(
-            guild_two.create_role, name=role_name_new_artist, mentionable=True)
+            guild_one.create_role, name=role_name_artist_two, mentionable=True)
+        self.guild_two_artist_two_role = await self.run_threadsafe(
+            guild_two.create_role, name=role_name_artist_two, mentionable=True)
 
         # Overwriting db so that changes can get rolled back per test.
         self.bot.db = FanbotDatabase(self.session)
@@ -96,20 +108,22 @@ class ReleasesIntegrationTest(BotIntegrationTest):
 
     async def test_artist_new_release_guild_one_follows_only(self):
         with patch('bot.cogs.releases.sp.get_newest_release_by_artist',
-                   side_effect=self.mock_get_newest_release_by_artist_existing_artist_new):
+                   side_effect=self.mock_get_newest_release_by_artist_artist_one_new):
             await self.run_threadsafe(self.cog.check_new_releases)
 
-        guild_one_msg = await self.run_threadsafe(self.get_recent_message_content, self.guild_one_channel)
-        guild_two_msg = await self.run_threadsafe(self.get_recent_message_content, self.guild_two_channel)
+        guild_one_msg = await self.run_threadsafe(
+            self.get_recent_message_content, self.guild_one_channel)
+        guild_two_msg = await self.run_threadsafe(
+            self.get_recent_message_content, self.guild_two_channel)
         expected_msg = NEW_RELEASE_FORMATTER % (
-            self.guild_one_artist_one_role.id, self.new_release_one_artist['url'])
+            self.guild_one_artist_one_role.id, self.new_release_artist_one['url'])
 
         self.assertEqual(expected_msg, guild_one_msg)
         self.assertEqual(CHANNEL_RESET_MESSAGE, guild_two_msg)
 
         artist = self.session.query(Artist).filter(Artist.id == self.artist_one.id).first()
 
-        self.assertEqual(self.new_release_one_artist['id'], artist.latest_release_id)
+        self.assertEqual(self.new_release_artist_one['id'], artist.latest_release_id)
 
     async def test_artist_new_release_delete_music_channel_no_notification(self):
         guild = self.bot.get_guild(self.guild_one.id)
@@ -118,13 +132,13 @@ class ReleasesIntegrationTest(BotIntegrationTest):
             guild._channels.pop(self.guild_one_channel.id)
 
             with patch('bot.cogs.releases.sp.get_newest_release_by_artist',
-                       return_value=self.new_release_one_artist):
+                       return_value=self.new_release_artist_one):
                 await self.run_threadsafe(self.cog.check_new_releases)
 
             guild_one_msg = await self.run_threadsafe(
                 self.get_recent_message_content, self.guild_one_channel)
             new_release_msg = NEW_RELEASE_FORMATTER % (
-                self.guild_one_artist_one_role.id, self.new_release_one_artist['url'])
+                self.guild_one_artist_one_role.id, self.new_release_artist_one['url'])
 
             self.assertNotEqual(guild_one_msg, new_release_msg)
         finally:
@@ -132,28 +146,111 @@ class ReleasesIntegrationTest(BotIntegrationTest):
 
     async def test_artist_new_release_both_guilds_follow(self):
         with patch('bot.cogs.releases.sp.get_newest_release_by_artist',
-                   return_value=self.new_release_one_artist):
+                   side_effect=self.mock_get_newest_release_by_artist_artist_two_new):
             await self.run_threadsafe(self.cog.check_new_releases)
 
-        guild_one_msg = await self.run_threadsafe(self.get_recent_message_content, self.guild_one_channel)
-        guild_two_msg = await self.run_threadsafe(self.get_recent_message_content, self.guild_two_channel)
-        expected_msg = NEW_RELEASE_FORMATTER % (self.guild_one_artist_one_role.id, self.new_release_one_artist['url'])
+        guild_one_msg = await self.run_threadsafe(
+            self.get_recent_message_content, self.guild_one_channel)
+        guild_two_msg = await self.run_threadsafe(
+            self.get_recent_message_content, self.guild_two_channel)
+        expected_msg_guild_one = NEW_RELEASE_FORMATTER % (self.guild_one_artist_two_role.id, self.new_release_artist_two['url'])
+        expected_msg_guild_two = NEW_RELEASE_FORMATTER % (self.guild_two_artist_two_role.id, self.new_release_artist_two['url'])
 
-        self.assertEqual(expected_msg, guild_one_msg)
+        self.assertEqual(expected_msg_guild_one, guild_one_msg)
+        self.assertEqual(expected_msg_guild_two, guild_two_msg)
+
+        artist = self.session.query(Artist).filter(Artist.id == self.artist_two.id).first()
+
+        self.assertEqual(self.new_release_artist_two['id'], artist.latest_release_id)
+
+    async def test_both_artists_shared_new_release(self):
+        with patch('bot.cogs.releases.sp.get_newest_release_by_artist',
+                   return_value=self.new_release_two_artists):
+            await self.run_threadsafe(self.cog.check_new_releases)
+
+        guild_one_msg = await self.run_threadsafe(
+            self.get_recent_message_content, self.guild_one_channel)
+
+        self.assertTrue(str(self.guild_one_artist_one_role.id) in guild_one_msg)
+        self.assertTrue(str(self.guild_one_artist_two_role.id) in guild_one_msg)
+
+    async def test_artist_two_deleted_role_not_notified_and_follow_deleted(self):
+        await self.run_threadsafe(self.guild_one_artist_two_role.delete)
+
+        with patch('bot.cogs.releases.sp.get_newest_release_by_artist',
+                   return_value=self.new_release_two_artists):
+            await self.run_threadsafe(self.cog.check_new_releases)
+
+        guild_one_msg = await self.run_threadsafe(
+            self.get_recent_message_content, self.guild_one_channel)
+
+        self.assertTrue(str(self.guild_one_artist_one_role.id) in guild_one_msg)
+        self.assertFalse(str(self.guild_one_artist_two_role.id) in guild_one_msg)
+
+        guild = self.bot.db.get_guild_by_id(self.guild_one.id)
+
+        self.assertTrue(self.artist_two.id not in guild.artist_ids)
+
+    async def test_artist_one_deleted_guild_not_notified_follow_deleted(self):
+        await self.run_threadsafe(self.guild_two_artist_two_role.delete)
+
+        with patch('bot.cogs.releases.sp.get_newest_release_by_artist',
+                   side_effect=self.mock_get_newest_release_by_artist_artist_two_new):
+            await self.run_threadsafe(self.cog.check_new_releases)
+
+        guild_two_msg = await self.run_threadsafe(
+            self.get_recent_message_content, self.guild_two_channel)
+
         self.assertEqual(CHANNEL_RESET_MESSAGE, guild_two_msg)
 
-        artist = self.session.query(Artist).filter(Artist.id == self.artist_one.id).first()
+        guild = self.bot.db.get_guild_by_id(self.guild_two.id)
 
-        self.assertEqual(self.new_release_one_artist['id'], artist.latest_release_id)
+        self.assertTrue(self.artist_two.id not in guild.artist_ids)
 
-    def mock_get_newest_release_by_artist_existing_artist_new(self, artist_id):
+    async def test_no_new_release_no_notification(self):
+        with patch('bot.cogs.releases.sp.get_newest_release_by_artist',
+                   return_value=None):
+            await self.run_threadsafe(self.cog.check_new_releases)
+
+        guild_one_msg = await self.run_threadsafe(
+            self.get_recent_message_content, self.guild_one_channel)
+
+        self.assertEqual(CHANNEL_RESET_MESSAGE, guild_one_msg)
+
+    async def test_guild_removed_bot_when_new_release(self):
+        with patch('bot.cogs.releases.sp.get_newest_release_by_artist',
+                   return_value=self.new_release_artist_two):
+            with patch.object(self.bot, 'get_guild', return_value=None):
+                await self.run_threadsafe(self.cog.check_new_releases)
+
+        guild_two = self.bot.db.get_guild_by_id(self.guild_two.id)
+        artist_two = self.bot.db.get_artist_by_id(self.artist_two.id)
+
+        self.assertIsNone(guild_two)
+        self.assertFalse(self.guild_two.id in artist_two.guild_ids)
+
+    async def test_guild_not_notified_when_already_been_notified(self):
+        self.artist_one.latest_release_name = self.new_release_artist_one['name']
+
+        self.bot.db.update_artist(self.artist_one)
+
+        with patch('bot.cogs.releases.sp.get_newest_release_by_artist',
+                   return_value=None):
+            await self.run_threadsafe(self.cog.check_new_releases)
+
+        guild_one_msg = await self.run_threadsafe(
+            self.get_recent_message_content, self.guild_one_channel)
+
+        self.assertEqual(CHANNEL_RESET_MESSAGE, guild_one_msg)
+
+    def mock_get_newest_release_by_artist_artist_one_new(self, artist_id):
         if artist_id == self.artist_one.id:
-            return self.new_release_one_artist
+            return self.new_release_artist_one
         else:
             return None
 
-    def mock_get_newest_release_by_artist_both_artists_new(self, artist_id):
+    def mock_get_newest_release_by_artist_artist_two_new(self, artist_id):
         if artist_id == self.artist_two.id:
-            return self.new_release_two_artists
+            return self.new_release_artist_two
         else:
             return None

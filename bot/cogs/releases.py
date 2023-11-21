@@ -6,6 +6,7 @@ from discord.ext import commands, tasks
 from discord.utils import get
 import logging
 import services.spotify as sp
+from bot.helpers import get_fan_role_name
 from services.fanbotdatabase import Artist
 
 NEW_RELEASE_FORMATTER = "<@&%s> New Release!\n%s"
@@ -67,7 +68,7 @@ class Releases(commands.Cog):
         release_url = release['url'] if 'url' in release.keys() else release['external_urls']['spotify']
         message_text = ""
         for i in range(1, len(role_ids)):
-            message_text += '<@&%s>, ' % role_ids[i].id
+            message_text += '<@&%s>, ' % role_ids[i]
         await channel.send(message_text + NEW_RELEASE_FORMATTER % (role_ids[0], release_url))
 
     def get_role_ids(self, release, guild):
@@ -77,7 +78,7 @@ class Releases(commands.Cog):
                 relevant_artists.append(self.bot.db.get_artist_by_id(artist['id']))
         artist_role_ids = []
         for artist in relevant_artists:
-            role = get(self.bot.get_guild(guild.id).roles, name=f"{artist.name}Fan")
+            role = get(self.bot.get_guild(guild.id).roles, name=get_fan_role_name(artist.name))
             if role is None:
                 self.bot.db.unfollow_artist_for_guild(artist.id, guild.id)
             else:
