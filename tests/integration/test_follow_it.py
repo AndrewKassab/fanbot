@@ -2,7 +2,7 @@ import asyncio
 from unittest.mock import AsyncMock
 
 from bot.cogs.follow import *
-from helpers import get_fan_role_name
+from bot.helpers import get_fan_role_name
 from services.fanbotdatabase import Artist
 from settings import *
 from tests.integration.base_bot_integration import BotIntegrationTest
@@ -25,7 +25,7 @@ class FollowIntegrationTest(BotIntegrationTest):
         super(FollowIntegrationTest, cls).tearDownClass()
 
     async def asyncSetUp(self):
-        super().asyncSetUp()
+        await super().asyncSetUp()
 
         self.mock_interaction = AsyncMock(spec=discord.Interaction)
         self.mock_interaction.guild_id = self.existing_guild.id
@@ -36,31 +36,27 @@ class FollowIntegrationTest(BotIntegrationTest):
         self.mock_edit = self.mock_interaction.edit_original_response
 
     async def asyncTearDown(self):
-        super().tearDown()
+        await super().asyncTearDown()
 
     async def test_follow_artist_guild_not_set_up(self):
         self.mock_interaction.guild_id = TEST_GUILD_TWO_ID
-        future = asyncio.run_coroutine_threadsafe(self.cog.follow_artist.callback(
-            self.cog, self.mock_interaction, NEW_ARTIST_LINK), self.bot.loop)
-        future.result()
+        await self.run_threadsafe(
+            self.cog.follow_artist.callback, self.cog, self.mock_interaction, NEW_ARTIST_LINK)
         self.mock_edit.assert_called_once_with(content=CONFIGURE_CHANNEL_MESSAGE)
 
     async def test_follow_invalid_artist_link(self):
-        future = asyncio.run_coroutine_threadsafe(self.cog.follow_artist.callback(
-            self.cog, self.mock_interaction, INVALID_ARTIST_LINK), self.bot.loop)
-        future.result()
+        await self.run_threadsafe(
+            self.cog.follow_artist.callback, self.cog, self.mock_interaction, INVALID_ARTIST_LINK)
         self.mock_edit.assert_called_once_with(content=ARTIST_NOT_FOUND_MESSAGE)
 
     async def test_follow_existing_artist_role_assigned(self):
-        future = asyncio.run_coroutine_threadsafe(self.cog.follow_artist.callback(
-            self.cog, self.mock_interaction, EXISTING_ARTIST_LINK), self.bot.loop)
-        future.result()
+        await self.run_threadsafe(
+            self.cog.follow_artist.callback, self.cog, self.mock_interaction, EXISTING_ARTIST_LINK)
         self.mock_interaction.user.add_roles.assert_called_once_with(self.existing_role)
 
     async def test_follow_new_artist(self):
-        future = asyncio.run_coroutine_threadsafe(self.cog.follow_artist.callback(
-            self.cog, self.mock_interaction, NEW_ARTIST_LINK), self.bot.loop)
-        future.result()
+        await self.run_threadsafe(
+            self.cog.follow_artist.callback, self.cog, self.mock_interaction, NEW_ARTIST_LINK)
 
         new_role = get(self.bot.get_guild(TEST_GUILD_ONE_ID).roles, name=get_fan_role_name(self.new_artist.name))
         self.assertIsNotNone(new_role)
@@ -70,8 +66,7 @@ class FollowIntegrationTest(BotIntegrationTest):
         self.assertIsNotNone(artist)
         self.assertEqual(self.existing_guild.id, artist.guilds[0].id)
 
-        future = asyncio.run_coroutine_threadsafe(self.get_recent_message_content(self.guild_one_channel), self.bot.loop)
-        recent_msg = future.result()
+        recent_msg = await self.run_threadsafe(self.get_recent_message_content, self.guild_one_channel)
         expected_msg = SUCCESSFULL_MESSAGE_FORMATTER % (
             new_role.id, self.new_artist.name, self.mock_interaction.user.name)
         self.assertEqual(expected_msg, recent_msg)

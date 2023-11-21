@@ -1,3 +1,4 @@
+import asyncio
 from unittest.mock import patch
 
 from cogs.releases import Releases, NEW_RELEASE_FORMATTER
@@ -47,15 +48,15 @@ class ReleasesIntegrationTest(BotIntegrationTest):
         super(ReleasesIntegrationTest, cls).tearDownClass()
 
     async def asyncSetUp(self):
-        super().asyncSetUp()
+        await super().asyncSetUp()
 
     async def asyncTearDown(self):
-        super().asyncTearDown()
+        await super().asyncTearDown()
 
     async def test_artist_new_release_guild_one_follows_only(self):
         with patch('bot.cogs.releases.sp.get_newest_release_by_artist', return_value=self.new_release_one_artist):
-            await self.cog.check_new_releases()
-        recent_msg = self.get_recent_message_content(self.guild_one_channel)
+            await self.run_threadsafe(self.cog.check_new_releases)
+        recent_msg = await self.run_threadsafe(self.get_recent_message_content, self.guild_one_channel)
         expected_msg = NEW_RELEASE_FORMATTER % (self.existing_role.id, self.new_release_one_artist['url'])
         self.assertEqual(expected_msg, recent_msg)
 

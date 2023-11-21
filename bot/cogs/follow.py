@@ -1,4 +1,4 @@
-import helpers
+import bot.helpers as helpers
 import services.spotify as sp
 from discord.ext import commands
 from discord.errors import Forbidden

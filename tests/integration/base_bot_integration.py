@@ -1,11 +1,12 @@
 import asyncio
+import functools
 import time
 from threading import Thread
 from unittest import IsolatedAsyncioTestCase
 import itertools
 
 from bot import FanBot
-from helpers import get_fan_role_name
+from bot.helpers import get_fan_role_name
 from settings import *
 from tests.integration.base_integration import IntegrationTest
 
@@ -47,10 +48,7 @@ class BotIntegrationTest(IntegrationTest, IsolatedAsyncioTestCase):
         guild_one = self.bot.get_guild(TEST_GUILD_ONE_ID)
         role_name = get_fan_role_name(self.existing_artist.name)
 
-        # make sure it completes since we can't use await
-        future = asyncio.run_coroutine_threadsafe(
-            guild_one.create_role(name=role_name, mentionable=True), self.bot.loop)
-        self.existing_role = future.result()
+        self.existing_role = await self.run_threadsafe(guild_one.create_role, name=role_name, mentionable=True)
 
         self.guild_one_channel = self.bot.get_channel(TEST_GUILD_ONE_MUSIC_CHANNEL_ID)
         self.guild_two_channel = self.bot.get_channel(TEST_GUILD_TWO_MUSIC_CHANNEL_ID)
@@ -62,15 +60,15 @@ class BotIntegrationTest(IntegrationTest, IsolatedAsyncioTestCase):
         guild_two = self.bot.get_guild(TEST_GUILD_TWO_ID)
         combined_roles = list(itertools.chain(guild_one.roles, guild_two.roles))
 
-        # futures are necessary since we can't use await here
-        futures = []
         for role in combined_roles:
             if APP_NAME not in role.name and 'everyone' not in role.name:
-                future = asyncio.run_coroutine_threadsafe(role.delete(), self.bot.loop)
-                futures.append(future)
+                await self.run_threadsafe(role.delete)
 
-        for future in futures:
-            future.result()
+    # Needed for asynchronous actions since bot is running in another thread.
+    async def run_threadsafe(self, func, *args, **kwargs):
+        partial = functools.partial(func, *args, **kwargs)
+        future = asyncio.run_coroutine_threadsafe(partial(), self.bot.loop)
+        return future.result()
 
     async def get_recent_message_content(self, channel):
         messages = [message async for message in channel.history(limit=1)]
