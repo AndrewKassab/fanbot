@@ -1,13 +1,13 @@
-import time
 from unittest.mock import patch
 
 from cogs.releases import Releases, NEW_RELEASE_FORMATTER
-from helpers import get_fan_role_name
-from services.fanbotdatabase import Artist, Guild
+from bot.helpers import get_fan_role_name
+from services.fanbotdatabase import Artist, Guild, FanbotDatabase
 from settings import TEST_GUILD_TWO_ID, TEST_GUILD_ONE_ID
 from tests.integration.base_bot_integration import BotIntegrationTest
 
 CHANNEL_RESET_MESSAGE = 'reset'
+
 
 class ReleasesIntegrationTest(BotIntegrationTest):
 
@@ -77,6 +77,9 @@ class ReleasesIntegrationTest(BotIntegrationTest):
         self.guild_two_new_artist_role = await self.run_threadsafe(
             guild_two.create_role, name=role_name_new_artist, mentionable=True)
 
+        # Overwriting db so that changes can get rolled back per test.
+        self.bot.db = FanbotDatabase(self.session)
+
     async def asyncTearDown(self):
         await super().asyncTearDown()
         await self.run_threadsafe(self.guild_one_channel.send, 'reset')
@@ -125,10 +128,10 @@ class ReleasesIntegrationTest(BotIntegrationTest):
 
         guild_one_msg = await self.run_threadsafe(self.get_recent_message_content, self.guild_one_channel)
         guild_two_msg = await self.run_threadsafe(self.get_recent_message_content, self.guild_two_channel)
-        expected_msg = NEW_RELEASE_FORMATTER % (self.existing_role.id, self.new_release_one_artist['url'])
+        expected_msg = NEW_RELEASE_FORMATTER % (self.guild_one_existing_artist_role.id, self.new_release_one_artist['url'])
 
         self.assertEqual(expected_msg, guild_one_msg)
-        self.assertEqual(expected_msg, guild_two_msg)
+        self.assertEqual(CHANNEL_RESET_MESSAGE, guild_two_msg)
 
         artist = self.session.query(Artist).filter(Artist.id == self.existing_artist.id).first()
 
