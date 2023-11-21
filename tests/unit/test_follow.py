@@ -87,7 +87,7 @@ class FollowTest(IsolatedAsyncioTestCase):
         with patch.object(self.cog.bot.db, 'does_guild_follow_artist', return_value=False):
             with patch.object(self.cog.bot.db, 'get_artist_by_id', return_value=None):
                 await self.cog.handle_follow_artist_for_guild(self.mock_interaction, artist, mock_role)
-                self.cog.bot.db.add_new_artist.assert_called_once_with(artist, self.mock_interaction.guild_id)
+                self.cog.bot.db.add_new_artist.assert_called_once_with(artist.id, artist.name, self.mock_interaction.guild_id)
                 self.mock_interaction.user.add_roles.assert_called_once_with(mock_role)
 
     @patch('bot.cogs.follow.Follow.send_successful_follow_message')

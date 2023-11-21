@@ -22,6 +22,7 @@ DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
 TEST_GUILD_ONE_ID = int(os.environ.get("TEST_GUILD_ONE_ID"))
 TEST_GUILD_TWO_ID = int(os.environ.get("TEST_GUILD_TWO_ID"))
 TEST_GUILD_ONE_MUSIC_CHANNEL_ID = int(os.environ.get("TEST_GUILD_ONE_MUSIC_CHANNEL_ID"))
+TEST_GUILD_TWO_MUSIC_CHANNEL_ID = int(os.environ.get("TEST_GUILD_TWO_MUSIC_CHANNEL_ID"))
 
 DB_URL = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 

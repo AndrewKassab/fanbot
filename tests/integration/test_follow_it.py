@@ -18,6 +18,8 @@ class FollowIntegrationTest(BotIntegrationTest):
     def setUpClass(cls):
         super(FollowIntegrationTest, cls).setUpClass()
 
+        cls.cog: Follow = cls.bot.get_cog('Follow')
+
     @classmethod
     def tearDownClass(cls):
         super(FollowIntegrationTest, cls).tearDownClass()
@@ -68,8 +70,7 @@ class FollowIntegrationTest(BotIntegrationTest):
         self.assertIsNotNone(artist)
         self.assertEqual(self.existing_guild.id, artist.guilds[0].id)
 
-        channel = self.bot.get_channel(TEST_GUILD_ONE_MUSIC_CHANNEL_ID)
-        future = asyncio.run_coroutine_threadsafe(self.get_recent_message_content(channel), self.bot.loop)
+        future = asyncio.run_coroutine_threadsafe(self.get_recent_message_content(self.guild_one_channel), self.bot.loop)
         recent_msg = future.result()
         expected_msg = SUCCESSFULL_MESSAGE_FORMATTER % (
             new_role.id, self.new_artist.name, self.mock_interaction.user.name)

@@ -1,10 +1,13 @@
-from datetime import datetime
+import asyncio
+from datetime import datetime, timedelta
 import pytz
 from discord.ext import commands, tasks
 from discord.utils import get
 import logging
-from services import spotify
+import services.spotify as sp
 from services.fanbotdatabase import Artist
+
+NEW_RELEASE_FORMATTER = "<@&%s> New Release!\n%s"
 
 
 class Releases(commands.Cog):
@@ -16,22 +19,27 @@ class Releases(commands.Cog):
     async def on_ready(self):
         self.check_new_releases.start()
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(hours=12)
     async def check_new_releases(self):
-        eastern = pytz.timezone('US/Eastern')
-        eastern_now = datetime.now(eastern)
-        if eastern_now.hour != 0 and eastern_now.minute != 0:
-            return
         logging.info('Checking for new releases')
         artists = self.bot.db.get_all_artists()
         for artist in artists:
             await self.check_new_release_for_artist(artist)
 
+    @check_new_releases.before_loop
+    async def before_check_new_releases(self):
+        eastern = pytz.timezone('US/Eastern')
+        now = datetime.now(eastern)
+        tomorrow = now.date() + timedelta(days=1)
+        midnight = datetime.combine(tomorrow, datetime.min.time(), tzinfo=eastern)
+        total_seconds_to_wait = (midnight - now).total_seconds()
+        await asyncio.sleep(total_seconds_to_wait)
+
     async def check_new_release_for_artist(self, artist: Artist):
         if len(artist.guilds) == 0:
             self.bot.db.delete_artist_by_id(artist.id)
 
-        newest_release = await spotify.get_newest_release_by_artist(artist.id)
+        newest_release = await sp.get_newest_release_by_artist(artist.id)
         if newest_release is None:
             return
         if newest_release['id'] == artist.latest_release_id or \
@@ -56,7 +64,7 @@ class Releases(commands.Cog):
         message_text = ""
         for i in range(1, len(role_ids)):
             message_text += '<@&%s>, ' % role_ids[i].id
-        await guild.get_channel(guild.music_channel_id).send(message_text + "<@&%s> New Release!\n%s"
+        await guild.get_channel(guild.music_channel_id).send(message_text + NEW_RELEASE_FORMATTER
                                                              % (role_ids[0], release_url))
 
     def get_role_ids(self, release, guild):
