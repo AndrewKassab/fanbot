@@ -10,6 +10,15 @@ CHANNEL_RESET_MESSAGE = 'reset'
 
 
 class ReleasesIntegrationTest(BotIntegrationTest):
+    '''
+    Preconditions:
+
+    guild_one and guild_two both exist
+    artist_one and artist_two both exist
+
+    guild_two follows both artist_one and artist_two with roles for both existing
+    guild_one follows only artist_one
+    '''
 
     @classmethod
     def setUpClass(cls):
@@ -21,8 +30,8 @@ class ReleasesIntegrationTest(BotIntegrationTest):
             'url': 'https://open.spotify.com/track/5wM6LOw2U6XeIFHfsgI6wU?si=4a0575adfae34c76',
             'artists': [
                 {
-                    'id': cls.existing_artist.id,
-                    'name': cls.existing_artist.name
+                    'id': cls.artist_one.id,
+                    'name': cls.artist_one.name
                 }
             ]
         }
@@ -33,12 +42,12 @@ class ReleasesIntegrationTest(BotIntegrationTest):
             'url': 'https://open.spotify.com/track/5wM6LOw2U6XeIFHfsgI6wU?si=4a0575adfae34c76',
             'artists': [
                 {
-                    'id': cls.existing_artist.id,
-                    'name': cls.existing_artist.name
+                    'id': cls.artist_one.id,
+                    'name': cls.artist_one.name
                 },
                 {
-                    'id': cls.new_artist.id,
-                    'name': cls.new_artist.name
+                    'id': cls.artist_two.id,
+                    'name': cls.artist_two.name
                 }
             ]
         }
@@ -47,12 +56,12 @@ class ReleasesIntegrationTest(BotIntegrationTest):
         cls.cog.check_new_releases.cancel()  # stops the loop from automatically triggering
 
         session = cls.Session()
-        new_guild_db = Guild(id=cls.new_guild.id, music_channel_id=cls.new_guild.music_channel_id)
-        new_artist_db = Artist(id=cls.new_artist.id, name=cls.new_artist.name)
+        new_guild_db = Guild(id=cls.guild_two.id, music_channel_id=cls.guild_two.music_channel_id)
+        new_artist_db = Artist(id=cls.artist_two.id, name=cls.artist_two.name)
         session.add(new_guild_db)
         session.add(new_artist_db)
 
-        existing_guild_db = session.query(Guild).filter(Guild.id == cls.existing_guild.id).first()
+        existing_guild_db = session.query(Guild).filter(Guild.id == cls.guild_one.id).first()
 
         new_guild_db.artists.append(new_artist_db)
         existing_guild_db.artists.append(new_artist_db)
@@ -70,9 +79,9 @@ class ReleasesIntegrationTest(BotIntegrationTest):
         await super().asyncSetUp()
         guild_one = self.bot.get_guild(TEST_GUILD_ONE_ID)
         guild_two = self.bot.get_guild(TEST_GUILD_TWO_ID)
-        role_name_new_artist = get_fan_role_name(self.new_artist.name)
+        role_name_new_artist = get_fan_role_name(self.artist_two.name)
 
-        self.guild_one_new_artist_role = await self.run_threadsafe(
+        self.guild_one_artist_two_role = await self.run_threadsafe(
             guild_one.create_role, name=role_name_new_artist, mentionable=True)
         self.guild_two_new_artist_role = await self.run_threadsafe(
             guild_two.create_role, name=role_name_new_artist, mentionable=True)
@@ -93,17 +102,17 @@ class ReleasesIntegrationTest(BotIntegrationTest):
         guild_one_msg = await self.run_threadsafe(self.get_recent_message_content, self.guild_one_channel)
         guild_two_msg = await self.run_threadsafe(self.get_recent_message_content, self.guild_two_channel)
         expected_msg = NEW_RELEASE_FORMATTER % (
-            self.guild_one_existing_artist_role.id, self.new_release_one_artist['url'])
+            self.guild_one_artist_one_role.id, self.new_release_one_artist['url'])
 
         self.assertEqual(expected_msg, guild_one_msg)
         self.assertEqual(CHANNEL_RESET_MESSAGE, guild_two_msg)
 
-        artist = self.session.query(Artist).filter(Artist.id == self.existing_artist.id).first()
+        artist = self.session.query(Artist).filter(Artist.id == self.artist_one.id).first()
 
         self.assertEqual(self.new_release_one_artist['id'], artist.latest_release_id)
 
     async def test_artist_new_release_delete_music_channel_no_notification(self):
-        guild = self.bot.get_guild(self.existing_guild.id)
+        guild = self.bot.get_guild(self.guild_one.id)
         try:
             # cheating because I can't mock get_channel (read only)
             guild._channels.pop(self.guild_one_channel.id)
@@ -115,7 +124,7 @@ class ReleasesIntegrationTest(BotIntegrationTest):
             guild_one_msg = await self.run_threadsafe(
                 self.get_recent_message_content, self.guild_one_channel)
             new_release_msg = NEW_RELEASE_FORMATTER % (
-                self.guild_one_existing_artist_role.id, self.new_release_one_artist['url'])
+                self.guild_one_artist_one_role.id, self.new_release_one_artist['url'])
 
             self.assertNotEqual(guild_one_msg, new_release_msg)
         finally:
@@ -128,23 +137,23 @@ class ReleasesIntegrationTest(BotIntegrationTest):
 
         guild_one_msg = await self.run_threadsafe(self.get_recent_message_content, self.guild_one_channel)
         guild_two_msg = await self.run_threadsafe(self.get_recent_message_content, self.guild_two_channel)
-        expected_msg = NEW_RELEASE_FORMATTER % (self.guild_one_existing_artist_role.id, self.new_release_one_artist['url'])
+        expected_msg = NEW_RELEASE_FORMATTER % (self.guild_one_artist_one_role.id, self.new_release_one_artist['url'])
 
         self.assertEqual(expected_msg, guild_one_msg)
         self.assertEqual(CHANNEL_RESET_MESSAGE, guild_two_msg)
 
-        artist = self.session.query(Artist).filter(Artist.id == self.existing_artist.id).first()
+        artist = self.session.query(Artist).filter(Artist.id == self.artist_one.id).first()
 
         self.assertEqual(self.new_release_one_artist['id'], artist.latest_release_id)
 
     def mock_get_newest_release_by_artist_existing_artist_new(self, artist_id):
-        if artist_id == self.existing_artist.id:
+        if artist_id == self.artist_one.id:
             return self.new_release_one_artist
         else:
             return None
 
     def mock_get_newest_release_by_artist_both_artists_new(self, artist_id):
-        if artist_id == self.new_artist.id:
+        if artist_id == self.artist_two.id:
             return self.new_release_two_artists
         else:
             return None

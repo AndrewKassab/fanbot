@@ -17,6 +17,12 @@ class BotIntegrationTest(IntegrationTest, IsolatedAsyncioTestCase):
     This means that we need to use a separate thread since the class setup is synchronous.
     Using a separate thread means that some workarounds had to be employed to use asynchronous
     calls within the bot object.
+
+    Setup:
+
+    - Includes setup from IntegrationTest
+    - Creates a role in guild_one for following artist_one
+    - Runs the bot
     """
 
     @classmethod
@@ -46,9 +52,9 @@ class BotIntegrationTest(IntegrationTest, IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         super().setUp()
         guild_one = self.bot.get_guild(TEST_GUILD_ONE_ID)
-        role_name = get_fan_role_name(self.existing_artist.name)
+        role_name = get_fan_role_name(self.artist_one.name)
 
-        self.guild_one_existing_artist_role = await self.run_threadsafe(guild_one.create_role, name=role_name, mentionable=True)
+        self.guild_one_artist_one_role = await self.run_threadsafe(guild_one.create_role, name=role_name, mentionable=True)
 
         self.guild_one_channel = self.bot.get_channel(TEST_GUILD_ONE_MUSIC_CHANNEL_ID)
         self.guild_two_channel = self.bot.get_channel(TEST_GUILD_TWO_MUSIC_CHANNEL_ID)
@@ -64,7 +70,7 @@ class BotIntegrationTest(IntegrationTest, IsolatedAsyncioTestCase):
             if APP_NAME not in role.name and 'everyone' not in role.name:
                 await self.run_threadsafe(role.delete)
 
-    # Needed for asynchronous actions since bot is running in another thread.
+    # Helper needed for asynchronous actions since bot is running in another thread.
     async def run_threadsafe(self, func, *args, **kwargs):
         partial = functools.partial(func, *args, **kwargs)
         future = asyncio.run_coroutine_threadsafe(partial(), self.bot.loop)
