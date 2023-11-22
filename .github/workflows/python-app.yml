@@ -5,29 +5,55 @@ name: Test Python Application
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, development ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, development ]
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: fanbottest
+          MYSQL_USER: fanbot
+          MYSQL_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=10s
+          --health-retries=3
+
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install -r requirements.txt
     - name: Run Tests
       run: |
         python -m unittest discover ./tests
       env:
         SP_CLIENT_ID: ${{secrets.CLIENT_ID}}
         SP_CLIENT_SECRET: ${{secrets.CLIENT_SECRET}}
+        DISCORD_TOKEN: ${{secrets.DISCORD_TOKEN}}
+        TEST_GUILD_ONE_ID: ${{TEST_GUILD_ONE_ID}}
+        TEST_GUILD_ONE_MUSIC_CHANNEL_ID: ${{TEST_GUILD_ONE_MUSIC_CHANNEL_ID}}
+        TEST_GUILD_TWO_ID: ${{TEST_GUILD_TWO_ID}}
+        TEST_GUILD_TWO_MUSIC_CHANNEL_ID: ${{TEST_GUILD_TWO_MUSIC_CHANNEL_ID}}
+        DB_HOST: localhost
+        DB_USER: fanbot
+        DB_PASSWORD: password
+        DB_NAME: fanbottest

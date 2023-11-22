@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from cogs.releases import Releases, NEW_RELEASE_FORMATTER
+from bot.cogs.releases import Releases, NEW_RELEASE_FORMATTER
 from bot.helpers import get_fan_role_name
 from services.fanbotdatabase import Artist, Guild, FanbotDatabase
 from settings import TEST_GUILD_TWO_ID, TEST_GUILD_ONE_ID
