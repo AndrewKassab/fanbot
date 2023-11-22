@@ -22,7 +22,9 @@ class Configure(commands.Cog):
             await interaction.edit_original_response(content="Channel successfully configured for updates. You "
                                                             f"may begin following artists using `/{FOLLOW_COMMAND}`.")
         else:
-            self.bot.db.update_guild_channel_id(interaction.guild_id, interaction.channel_id)
+            guild = self.bot.db.get_guild(interaction.guild_id)
+            guild.music_channel_id = interaction.channel_id
+            self.bot.db.update_guild(guild)
             await interaction.edit_original_response(content="Current channel successfully configured for updates.")
 
     @app_commands.command(
