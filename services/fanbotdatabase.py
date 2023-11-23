@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 
 from settings import DB_URL
-from sqlalchemy import Column, String, Integer, ForeignKey, BigInteger, create_engine, Table
+from sqlalchemy import Column, String, Integer, ForeignKey, BigInteger, create_engine, Table, inspect
 from sqlalchemy.orm import relationship, sessionmaker, joinedload, make_transient
 from sqlalchemy.ext.declarative import declarative_base
 import logging
@@ -81,6 +81,13 @@ class FanbotDatabase:
         self.engine = create_engine(DB_URL)
         self.Session = sessionmaker(bind=self.engine)
         self._session = session
+
+        existing_table_names = inspect(self.engine).get_table_names()
+        defined_table_names = {table.name for table in Base.metadata.tables.values()}
+
+        if not defined_table_names.issubset(set(existing_table_names)):
+            Base.metadata.create_all(self.engine)
+            logging.info("Database tables created.")
 
         self._guilds = {}
         self._artists = {}

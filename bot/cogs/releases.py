@@ -21,7 +21,7 @@ class Releases(commands.Cog):
     async def on_ready(self):
         self.check_new_releases.start()
 
-    @tasks.loop(hours=12)
+    @tasks.loop(hours=24)
     async def check_new_releases(self):
         logging.info('Checking for new releases')
         artists = self.bot.db.get_all_artists()
