@@ -35,7 +35,7 @@ class Artist(Base):
 class Guild(Base):
     __tablename__ = "Guilds"
 
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=False)
     music_channel_id = Column(BigInteger)
 
     artists = relationship(

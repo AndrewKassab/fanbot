@@ -18,10 +18,11 @@ class List(commands.Cog):
         description="list followed artists and self-assign roles",
     )
     async def list_follows(self, interaction: discord.Interaction):
-        artists = self.bot.db.get_guild_by_id(guild_id=interaction.guild_id).artists
-        if len(artists) == 0:
+        guild = self.bot.db.get_guild_by_id(guild_id=interaction.guild_id)
+        if guild is None or len(guild.artists) == 0:
             await interaction.response.send_message("No artists currently followed.", ephemeral=True)
             return
+        artists = guild.artists
         artists = sorted(artists, key=lambda x: x.name)
         guild = self.bot.get_guild(interaction.guild_id)
         await interaction.response.send_message(content=DEF_MSG + '1', view=RoleAssignView(artists, guild),
