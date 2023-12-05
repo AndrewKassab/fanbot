@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ui import Select, View, Button
 from discord.utils import get
 
-from helpers import get_fan_role_name
+from bot.helpers import get_fan_role_name
 from services.fanbotdatabase import Artist
 import discord
 from settings import LIST_COMMAND
