@@ -1,6 +1,9 @@
 from discord.ext import commands
 from discord import app_commands
 from discord.ui import Select, View, Button
+from discord.utils import get
+
+from helpers import get_fan_role_name
 from services.fanbotdatabase import Artist
 import discord
 from settings import LIST_COMMAND
@@ -19,10 +22,12 @@ class List(commands.Cog):
     )
     async def list_follows(self, interaction: discord.Interaction):
         guild = self.bot.db.get_guild_by_id(guild_id=interaction.guild_id)
-        if guild is None or len(guild.artists) == 0:
+        if guild is None or len(guild.artist_ids) == 0:
             await interaction.response.send_message("No artists currently followed.", ephemeral=True)
             return
-        artists = guild.artists
+        artists = []
+        for artist_id in guild.artist_ids:
+            artists.append(self.bot.db.get_artist_by_id(artist_id))
         artists = sorted(artists, key=lambda x: x.name)
         guild = self.bot.get_guild(interaction.guild_id)
         await interaction.response.send_message(content=DEF_MSG + '1', view=RoleAssignView(artists, guild),
@@ -38,7 +43,8 @@ class RoleAssignView(View):
         self.select_options = []
         self.guild = guild
         for artist in artists:
-            self.select_options.append(discord.SelectOption(label=artist.name, value=artist.role_id))
+            role_id = get(guild.roles, name=get_fan_role_name(artist.name)).id
+            self.select_options.append(discord.SelectOption(label=artist.name, value=str(role_id)))
         max_values = len(self.select_options) if len(self.select_options) < 25 else 25
 
         self.select = Select(placeholder="Select an artist", options=self.select_options[:25], max_values=max_values)

@@ -18,11 +18,11 @@ class Configure(commands.Cog):
     async def set_update_channel(self, interaction: discord.Interaction):
         await interaction.response.send_message("Attempting to set current channel for updates...", ephemeral=True)
         if not self.bot.db.is_guild_exist(interaction.guild_id):
-            self.bot.db.add_guild(Guild(interaction.guild_id, interaction.channel_id))
+            self.bot.db.add_guild(interaction.guild_id, interaction.channel_id)
             await interaction.edit_original_response(content="Channel successfully configured for updates. You "
                                                             f"may begin following artists using `/{FOLLOW_COMMAND}`.")
         else:
-            guild = self.bot.db.get_guild(interaction.guild_id)
+            guild = self.bot.db.get_guild_by_id(interaction.guild_id)
             guild.music_channel_id = interaction.channel_id
             self.bot.db.update_guild(guild)
             await interaction.edit_original_response(content="Current channel successfully configured for updates.")

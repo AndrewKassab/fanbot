@@ -13,7 +13,7 @@ SUCCESSFULL_MESSAGE_FORMATTER = "<@&%s> %s has been followed by %s!\n:white_chec
 ALREADY_FOLLOW_FORMAT_MESSAGE = 'This server is already following %s! We\'ve assigned you the corresponding role.'
 
 FAILED_MESSAGE = "Failed to follow artist."
-ATTEMPT_FOLLOW_MESSAGE = "'Attempting to follow artist...'"
+ATTEMPT_FOLLOW_MESSAGE = "Attempting to follow artist..."
 CONFIGURE_CHANNEL_MESSAGE = f"A server admin must first use `/{SET_COMMAND}` to configure a channel to send updates to."
 ARTIST_NOT_FOUND_MESSAGE = "Artist not found, please make sure you are providing a valid spotify artist url"
 MISSING_MANAGE_ROLES_MESSAGE = "Bot is missing Manage Roles permission."
