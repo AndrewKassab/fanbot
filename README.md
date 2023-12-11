@@ -31,10 +31,9 @@ Create a database, the default is mysql.connector, but can be configured through
 - DB_USER
 - DB_PASSWORD
 - DB_NAME
+
+For running tests also fill out: 
 - TEST_GUILD_ONE_ID
 - TEST_GUILD_ONE_MUSIC_CHANNEL_ID
 - TEST_GUILD_TWO_ID
 - TEST_GUILD_TWO_MUSIC_CHANNEL_ID
-
-For testing also fill out: 
-
