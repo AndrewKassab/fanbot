@@ -78,7 +78,7 @@ def guild_to_dto(guild):
 class FanbotDatabase:
 
     def __init__(self, session=None):
-        self.engine = create_engine(DB_URL)
+        self.engine = create_engine(DB_URL, pool_pre_ping=True)
         self.Session = sessionmaker(bind=self.engine)
         self._session = session
 
