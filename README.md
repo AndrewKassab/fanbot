@@ -4,7 +4,7 @@ Fanbot is the ultimate music fanboy! Keep your discord server updated on release
 **Commands:** (Works with discord slash commands)
 1. /setchannel - sets the current channel as the channel that release updates will send to
 2. /follow {artist_spotify_link} - follow an artist
-3. /listfollow - list all artists the bot is currently following.
+3. /listroles - list all artists the bot is currently following.
 4. To unfollow an artist, delete their corresponding role.
 
 ![Example Image](https://github.com/andrewkassab/mrmusic/blob/main/example.png?raw=true)
@@ -31,10 +31,9 @@ Create a database, the default is mysql.connector, but can be configured through
 - DB_USER
 - DB_PASSWORD
 - DB_NAME
+
+For running tests also fill out: 
 - TEST_GUILD_ONE_ID
 - TEST_GUILD_ONE_MUSIC_CHANNEL_ID
 - TEST_GUILD_TWO_ID
 - TEST_GUILD_TWO_MUSIC_CHANNEL_ID
-
-For testing also fill out: 
-
