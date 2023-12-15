@@ -21,21 +21,12 @@ class Releases(commands.Cog):
     async def on_ready(self):
         self.check_new_releases.start()
 
-    @tasks.loop(hours=24)
+    @tasks.loop(hours=5)
     async def check_new_releases(self):
         logging.info('Checking for new releases')
         artists = self.bot.db.get_all_artists()
         for artist in artists:
             await self.check_new_release_for_artist(artist)
-
-    @check_new_releases.before_loop
-    async def before_check_new_releases(self):
-        eastern = pytz.timezone('US/Eastern')
-        now = datetime.now(eastern)
-        tomorrow = now.date() + timedelta(days=1)
-        midnight = datetime.combine(tomorrow, datetime.min.time(), tzinfo=eastern)
-        total_seconds_to_wait = (midnight - now).total_seconds()
-        await asyncio.sleep(total_seconds_to_wait)
 
     async def check_new_release_for_artist(self, artist: Artist):
         if len(artist.guild_ids) == 0:
