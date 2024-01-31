@@ -1,7 +1,4 @@
-import asyncio
 import copy
-from datetime import datetime, timedelta
-import pytz
 from discord.ext import commands, tasks
 from discord.utils import get
 import logging
@@ -21,7 +18,7 @@ class Releases(commands.Cog):
     async def on_ready(self):
         self.check_new_releases.start()
 
-    @tasks.loop(hours=5)
+    @tasks.loop(hours=4, reconnect=True)
     async def check_new_releases(self):
         logging.info('Checking for new releases')
         artists = self.bot.db.get_all_artists()
