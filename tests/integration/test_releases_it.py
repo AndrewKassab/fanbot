@@ -64,6 +64,30 @@ class ReleasesIntegrationTest(BotIntegrationTest):
             ]
         }
 
+        cls.remix_release_another_artist = {
+            'id': '4',
+            'name': 'Some Song - Andrew Remix',
+            'url': 'Some URL',
+            'artists': [
+                {
+                    'id': cls.artist_one.id,
+                    'name': cls.artist_one.name
+                }
+            ]
+        }
+
+        cls.remix_release_same_artist = {
+            'id': '4',
+            'name': 'Some Song - Madeon Remix',
+            'url': 'Some URL Valid Remix',
+            'artists': [
+                {
+                    'id': cls.artist_one.id,
+                    'name': cls.artist_one.name
+                }
+            ]
+        }
+
         cls.cog: Releases = cls.bot.get_cog('Releases')
         cls.cog.check_new_releases.cancel()  # stops the loop from automatically triggering
 
@@ -242,6 +266,26 @@ class ReleasesIntegrationTest(BotIntegrationTest):
             self.get_recent_message_content, self.guild_one_channel)
 
         self.assertEqual(CHANNEL_RESET_MESSAGE, guild_one_msg)
+
+    async def test_no_notification_for_other_artist_remix(self):
+        with patch('bot.cogs.releases.sp.get_newest_release_by_artist',
+                   return_value=self.remix_release_another_artist):
+            await self.run_threadsafe(self.cog.check_new_releases)
+
+        guild_one_msg = await self.run_threadsafe(
+            self.get_recent_message_content, self.guild_one_channel)
+
+        self.assertEqual(CHANNEL_RESET_MESSAGE, guild_one_msg)
+
+    async def test_notification_for_followed_artists_remix(self):
+        with patch('bot.cogs.releases.sp.get_newest_release_by_artist',
+                   return_value=self.remix_release_same_artist):
+            await self.run_threadsafe(self.cog.check_new_releases)
+
+        guild_one_msg = await self.run_threadsafe(
+            self.get_recent_message_content, self.guild_one_channel)
+
+        self.assertTrue(self.remix_release_same_artist['url'] in guild_one_msg)
 
     def mock_get_newest_release_by_artist_artist_one_new(self, artist_id):
         if artist_id == self.artist_one.id:

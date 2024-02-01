@@ -35,6 +35,10 @@ class Releases(commands.Cog):
         if newest_release['id'] == artist.latest_release_id or \
                 newest_release['name'] == artist.latest_release_name:
             return
+        # If this is a remix, but by another artist, ignore it.
+        if 'remix' in newest_release['name'].lower() and f'{artist.name.lower()} remix' \
+                not in newest_release['name'].lower():
+            return
 
         for guild_id in copy.deepcopy(artist.guild_ids):
             guild = self.bot.db.get_guild_by_id(guild_id)
