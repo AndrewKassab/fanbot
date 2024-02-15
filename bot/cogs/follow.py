@@ -62,7 +62,7 @@ class Follow(commands.Cog):
         guild = self.bot.get_guild(guild_id)
         role = None
         if self.bot.db.is_artist_exist(artist.id):
-            role = get(guild.roles, name=f"{artist.name}Fan")
+            role = get(guild.roles, name=helpers.get_fan_role_name(artist.name))
         if role is None:
             role = await guild.create_role(name=helpers.get_fan_role_name(artist.name), mentionable=True)
         return role

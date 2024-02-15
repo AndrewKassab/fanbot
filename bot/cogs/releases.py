@@ -30,14 +30,8 @@ class Releases(commands.Cog):
             self.bot.db.delete_artist_by_id(artist.id)
 
         newest_release = await sp.get_newest_release_by_artist(artist.id)
-        if newest_release is None:
-            return
-        if newest_release['id'] == artist.latest_release_id or \
-                newest_release['name'] == artist.latest_release_name:
-            return
-        # If this is a remix, but by another artist, ignore it.
-        if 'remix' in newest_release['name'].lower() and f'{artist.name.lower()} remix' \
-                not in newest_release['name'].lower():
+
+        if not self.is_new_release_valid(newest_release, artist):
             return
 
         for guild_id in copy.deepcopy(artist.guild_ids):
@@ -55,6 +49,18 @@ class Releases(commands.Cog):
                 channel = self.bot.get_guild(guild.id).get_channel(guild.music_channel_id)
                 if channel is not None:
                     await self.notify_release(newest_release, role_ids, channel)
+
+    def is_new_release_valid(self, release, artist):
+        if release is None:
+            return
+        if release['id'] == artist.latest_release_id or \
+                release['name'] == artist.latest_release_name:
+            return
+        # If this is a remix, but by another artist, ignore it.
+        if 'remix' in release['name'].lower() and f'{artist.name.lower()} remix' \
+                not in release['name'].lower():
+            return
+
 
     async def notify_release(self, release, role_ids, channel):
         release_url = release['url'] if 'url' in release.keys() else release['external_urls']['spotify']

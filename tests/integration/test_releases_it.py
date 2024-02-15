@@ -156,7 +156,7 @@ class ReleasesIntegrationTest(BotIntegrationTest):
             guild._channels.pop(self.guild_one_channel.id)
 
             with patch('bot.cogs.releases.sp.get_newest_release_by_artist',
-                       return_value=self.new_release_artist_one):
+                       return_value=self.new_release_artist_two):
                 await self.run_threadsafe(self.cog.check_new_releases)
 
             guild_one_msg = await self.run_threadsafe(

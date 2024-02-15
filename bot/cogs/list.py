@@ -43,8 +43,11 @@ class RoleAssignView(View):
         self.select_options = []
         self.guild = guild
         for artist in artists:
-            role_id = get(guild.roles, name=get_fan_role_name(artist.name)).id
-            self.select_options.append(discord.SelectOption(label=artist.name, value=str(role_id)))
+            role = get(guild.roles, name=get_fan_role_name(artist.name))
+            if role is None:
+                self.bot.db.unfollow_artist_for_guild(artist.id, guild.id)
+                continue
+            self.select_options.append(discord.SelectOption(label=artist.name, value=str(role.id)))
         max_values = len(self.select_options) if len(self.select_options) < 25 else 25
 
         self.select = Select(placeholder="Select an artist", options=self.select_options[:25], max_values=max_values)

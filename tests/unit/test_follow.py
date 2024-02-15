@@ -65,9 +65,10 @@ class FollowTest(IsolatedAsyncioTestCase):
 
     async def test_get_role_for_artist_already_exists(self):
         with patch("bot.cogs.follow.get", return_value=Mock(id=20)) as mock_get:
-            returned_role = await self.cog.get_role_for_artist(Mock(), Mock())
-            mock_get.assert_called()
-            self.assertEqual(returned_role.id, 20)
+            with patch("bot.cogs.follow.helpers.get_fan_role_name", return_value=Mock()):
+                returned_role = await self.cog.get_role_for_artist(Mock(), Mock())
+                mock_get.assert_called()
+                self.assertEqual(returned_role.id, 20)
 
     async def test_get_role_for_artist_not_exist(self):
         mocked_guild = MagicMock(spec=discord.Guild)
