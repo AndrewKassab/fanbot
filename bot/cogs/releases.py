@@ -52,15 +52,15 @@ class Releases(commands.Cog):
 
     def is_new_release_valid(self, release, artist):
         if release is None:
-            return
+            return False
         if release['id'] == artist.latest_release_id or \
                 release['name'] == artist.latest_release_name:
-            return
+            return False
         # If this is a remix, but by another artist, ignore it.
         if 'remix' in release['name'].lower() and f'{artist.name.lower()} remix' \
                 not in release['name'].lower():
-            return
-
+            return False
+        return True
 
     async def notify_release(self, release, role_ids, channel):
         release_url = release['url'] if 'url' in release.keys() else release['external_urls']['spotify']
