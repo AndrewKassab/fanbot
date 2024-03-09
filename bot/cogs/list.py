@@ -30,13 +30,13 @@ class List(commands.Cog):
             artists.append(self.bot.db.get_artist_by_id(artist_id))
         artists = sorted(artists, key=lambda x: x.name)
         guild = self.bot.get_guild(interaction.guild_id)
-        await interaction.response.send_message(content=DEF_MSG + '1', view=RoleAssignView(artists, guild),
+        await interaction.response.send_message(content=DEF_MSG + '1', view=RoleAssignView(artists, guild, self.bot),
                                                 ephemeral=True)
 
 
 class RoleAssignView(View):
 
-    def __init__(self, artists: [Artist], guild: discord.Guild):
+    def __init__(self, artists: [Artist], guild: discord.Guild, bot):
         super().__init__(timeout=None)
         self.offset = 0
         self.page = 1
@@ -45,7 +45,7 @@ class RoleAssignView(View):
         for artist in artists:
             role = get(guild.roles, name=get_fan_role_name(artist.name))
             if role is None:
-                self.bot.db.unfollow_artist_for_guild(artist.id, guild.id)
+                bot.db.unfollow_artist_for_guild(artist.id, guild.id)
                 continue
             self.select_options.append(discord.SelectOption(label=artist.name, value=str(role.id)))
         max_values = len(self.select_options) if len(self.select_options) < 25 else 25
