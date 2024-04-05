@@ -1,4 +1,5 @@
 import copy
+
 from discord.ext import commands, tasks
 from discord.utils import get
 import logging
@@ -28,7 +29,7 @@ class Releases(commands.Cog):
         for artist in artists:
             try:
                 await self.check_new_release_for_artist(artist)
-            except OperationalError:
+            except Exception as e:
                 logging.exception(f"Error encountered when checking new releases for artist {artist.name}")
                 continue
 
