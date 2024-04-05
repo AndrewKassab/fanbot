@@ -91,7 +91,6 @@ class Releases(commands.Cog):
         for artist in relevant_artists:
             role = get(self.bot.get_guild(guild.id).roles, name=get_fan_role_name(artist.name))
             if role is None:
-                logging.error(f"Role for {artist.name} not found for guild {guild.id}, ")
                 self.bot.db.unfollow_artist_for_guild(artist.id, guild.id)
             else:
                 artist_role_ids.append(role.id)

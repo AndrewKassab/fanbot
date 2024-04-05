@@ -164,7 +164,6 @@ class DatabaseTest(IntegrationTest):
     def test_unfollow_artist_for_guild_deleted_artist(self):
         self.db.unfollow_artist_for_guild(self.artist_one.id, self.guild_one.id)
 
-
         guild_db = self.session.query(Guild).filter(Guild.id == self.guild_one.id).first()
         guild_cached = self.db.get_guild_by_id(self.guild_one.id)
         artist_db = self.session.query(Artist).filter(Artist.id == self.artist_one.id).first()

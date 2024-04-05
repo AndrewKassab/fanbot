@@ -210,16 +210,14 @@ class FanbotDatabase:
     def unfollow_artist_for_guild(self, artist_id, guild_id):
         with self.session_scope() as session:
             session.query(FollowedArtist).filter_by(
-                artist_id=artist_id, guild_id=guild_id).delete(synchronize_session='fetch')
-            session.flush()
-            session.expire_all()
+                artist_id=artist_id, guild_id=guild_id).delete()
 
-            artist = self._artists.get(artist_id)
-            if guild_id in artist.guild_ids:
-                artist.guild_ids.remove(guild_id)
-                self._guilds.get(guild_id).artist_ids.remove(artist_id)
-            if len(artist.guild_ids) == 0:
-                self.delete_artist_by_id(artist_id)
+        artist = self._artists.get(artist_id)
+        if guild_id in artist.guild_ids:
+            artist.guild_ids.remove(guild_id)
+            self._guilds.get(guild_id).artist_ids.remove(artist_id)
+        if len(artist.guild_ids) == 0:
+            self.delete_artist_by_id(artist_id)
 
     def follow_existing_artist_for_guild(self, artist_id, guild_id):
         with self.session_scope() as session:
