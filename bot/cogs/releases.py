@@ -2,6 +2,9 @@ import copy
 from discord.ext import commands, tasks
 from discord.utils import get
 import logging
+
+from sqlalchemy.exc import OperationalError
+
 import services.spotify as sp
 from bot.helpers import get_fan_role_name
 from services.fanbotdatabase import Artist
@@ -23,7 +26,11 @@ class Releases(commands.Cog):
         logging.info('Checking for new releases')
         artists = self.bot.db.get_all_artists()
         for artist in artists:
-            await self.check_new_release_for_artist(artist)
+            try:
+                await self.check_new_release_for_artist(artist)
+            except OperationalError:
+                logging.exception(f"Error encountered when checking new releases for artist {artist.name}")
+                continue
 
     async def check_new_release_for_artist(self, artist: Artist):
         if len(artist.guild_ids) == 0:
@@ -41,7 +48,12 @@ class Releases(commands.Cog):
                 continue
             if self.bot.get_guild(guild.id).get_channel(guild.music_channel_id) is None:
                 continue
-            role_ids = self.get_role_ids(newest_release, guild)
+            try:
+                role_ids = self.get_role_ids(newest_release, guild)
+            except OperationalError:
+                logging.exception(
+                    f"Error encountered when retrieving role IDs for artist {artist.name} in guild {guild.id}")
+                continue
             if len(role_ids) == 0:
                 self.bot.db.unfollow_artist_for_guild(artist.id, guild.id)
             else:
@@ -78,6 +90,7 @@ class Releases(commands.Cog):
         for artist in relevant_artists:
             role = get(self.bot.get_guild(guild.id).roles, name=get_fan_role_name(artist.name))
             if role is None:
+                logging.error(f"Role for {artist.name} not found for guild {guild.id}, ")
                 self.bot.db.unfollow_artist_for_guild(artist.id, guild.id)
             else:
                 artist_role_ids.append(role.id)
