@@ -49,8 +49,11 @@ class Releases(commands.Cog):
                 continue
             if self.bot.get_guild(guild.id).get_channel(guild.music_channel_id) is None:
                 continue
+
             try:
-                role_ids = self.get_role_ids(newest_release, guild)
+                relevant_artists = self.get_relevant_artists(newest_release, guild)
+                role_ids = self.get_role_ids(relevant_artists, guild)
+                self.update_artist_releases(newest_release, relevant_artists)
             except OperationalError:
                 logging.exception(
                     f"Error encountered when retrieving role IDs for artist {artist.name} in guild {guild.id}")
@@ -82,11 +85,7 @@ class Releases(commands.Cog):
             message_text += '<@&%s>, ' % role_ids[i]
         await channel.send(message_text + NEW_RELEASE_FORMATTER % (role_ids[0], release_url))
 
-    def get_role_ids(self, release, guild):
-        relevant_artists = []
-        for artist in release['artists']:
-            if artist['id'] in guild.artist_ids:
-                relevant_artists.append(self.bot.db.get_artist_by_id(artist['id']))
+    def get_role_ids(self, relevant_artists, guild):
         artist_role_ids = []
         for artist in relevant_artists:
             role = get(self.bot.get_guild(guild.id).roles, name=get_fan_role_name(artist.name))
@@ -94,12 +93,19 @@ class Releases(commands.Cog):
                 self.bot.db.unfollow_artist_for_guild(artist.id, guild.id)
             else:
                 artist_role_ids.append(role.id)
-        self.update_artist_releases(release, relevant_artists)
         return artist_role_ids
+
+    def get_relevant_artists(self, release, guild):
+        relevant_artists = []
+        for artist in release['artists']:
+            if artist['id'] in guild.artist_ids:
+                relevant_artists.append(self.bot.db.get_artist_by_id(artist['id']))
+        return relevant_artists
 
     def update_artist_releases(self, release, artists):
         for artist in artists:
-            artist.latest_release_id = release['id']
-            artist.latest_release_name = release['name']
-            self.bot.db.update_artist(artist)
+            if artist is not None:
+                artist.latest_release_id = release['id']
+                artist.latest_release_name = release['name']
+                self.bot.db.update_artist(artist)
 

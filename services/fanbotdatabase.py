@@ -28,7 +28,7 @@ class Artist(Base):
         "Guild",
         secondary=FollowedArtist,
         back_populates="artists",
-        cascade="all, delete"
+        #cascade="all, delete"
     )
 
 
@@ -42,7 +42,7 @@ class Guild(Base):
         "Artist",
         secondary=FollowedArtist,
         back_populates="guilds",
-        cascade="all, delete"
+        #cascade="all, delete"
     )
 
 
@@ -97,6 +97,8 @@ class FanbotDatabase:
     def session_scope(self):
         if self._session:
             yield self._session
+            self._session.flush()
+            self._session.expire_all()
         else:
             session = self.Session()
             try:
@@ -142,21 +144,26 @@ class FanbotDatabase:
                 session.commit()
 
     def delete_guild_by_id(self, guild_id):
+        followed_artist_ids = []
+
         with self.session_scope() as session:
             guild = session.query(Guild).filter_by(id=guild_id).first()
 
             if guild:
                 for artist in guild.artists:
-                    if artist.id in self._artists:
-                        self._artists[artist.id].guild_ids.remove(guild_id)
-                        if len(self._artists[artist.id].guild_ids) == 0:
-                            self.delete_artist_by_id(artist.id)
-
+                    followed_artist_ids.append(artist.id)
                 session.delete(guild)
-                if guild_id in self._guilds:
-                    del self._guilds[guild_id]
 
-                logging.info(f"Deleted guild {guild_id} and updated artist associations.")
+        if guild_id in self._guilds:
+            del self._guilds[guild_id]
+
+        for artist_id in followed_artist_ids:
+            if artist_id in self._artists:
+                self._artists[artist_id].guild_ids.remove(guild_id)
+                if len(self._artists[artist.id].guild_ids) == 0:
+                    self.delete_artist_by_id(artist.id)
+
+        logging.info(f"Deleted guild {guild_id} and updated artist associations.")
 
     def is_guild_exist(self, guild_id):
         return guild_id in self._guilds.keys()

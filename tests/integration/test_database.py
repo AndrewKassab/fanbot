@@ -86,10 +86,12 @@ class DatabaseTest(IntegrationTest):
         guild_db = self.session.query(Guild).filter(Guild.id == self.guild_one.id).first()
         guild_cached = self.db.get_guild_by_id(self.guild_one.id)
         artist_cached = self.db.get_artist_by_id(self.artist_one.id)
+        artist_db = self.session.query(Artist).filter(Artist.id == self.artist_one.id).first()
 
         self.assertIsNone(guild_db)
         self.assertIsNone(guild_cached)
         self.assertIsNone(artist_cached) # The only guild following this artist is deleted
+        self.assertIsNone(artist_db) # The only guild following this artist is deleted
 
     def test_does_guild_exist_existing_guild_exists(self):
         self.assertTrue(self.db.is_guild_exist(self.guild_one.id))
